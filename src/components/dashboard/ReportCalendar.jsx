@@ -1,91 +1,151 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay, addMonths, subMonths } from 'date-fns';
-import { Link } from 'react-router-dom';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isSameDay, addMonths, subMonths } from 'date-fns';
+import DeadlineDetailPopup from './DeadlineDetailPopup';
+
+// Build a unified list of deadlines from both reports and projects
+function buildDeadlines(reports, projects) {
+  const deadlines = [];
+
+  reports.forEach(r => {
+    if (!r.due_date) return;
+    const project = projects.find(p => p.id === r.project_id);
+    deadlines.push({
+      id: `report-${r.id}`,
+      type: 'report',
+      date: r.due_date,
+      title: r.title,
+      project_id: r.project_id,
+      projectTitle: project?.title || 'Unknown Project',
+      funderName: project?.funder_name,
+      status: r.status,
+      reportType: r.report_type,
+      notes: r.notes,
+    });
+  });
+
+  projects.forEach(p => {
+    if (!p.submission_deadline) return;
+    deadlines.push({
+      id: `proposal-${p.id}`,
+      type: 'proposal',
+      date: p.submission_deadline,
+      title: p.title,
+      project_id: p.id,
+      projectTitle: p.title,
+      funderName: p.funder_name,
+      projectStatus: p.status,
+      notes: p.description,
+    });
+  });
+
+  return deadlines;
+}
+
+const DEADLINE_STYLES = {
+  report: 'bg-primary/10 text-primary border-primary/20',
+  proposal: 'bg-amber-100 text-amber-700 border-amber-200',
+};
 
 export default function ReportCalendar({ reports, projects }) {
-  const [currentMonth, setCurrentMonth] = React.useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDeadline, setSelectedDeadline] = useState(null);
+
+  const deadlines = buildDeadlines(reports, projects);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const paddingDays = Array(monthStart.getDay()).fill(null);
 
-  const startDay = monthStart.getDay();
-  const paddingDays = Array(startDay).fill(null);
-
-  const getReportsForDay = (day) => {
-    return reports.filter(r => r.due_date && isSameDay(new Date(r.due_date), day));
-  };
-
-  const getProjectName = (projectId) => {
-    const p = projects.find(p => p.id === projectId);
-    return p?.title || 'Unknown';
-  };
-
-  const statusColors = {
-    upcoming: 'bg-primary/10 text-primary border-primary/20',
-    in_progress: 'bg-accent/10 text-accent border-accent/20',
-    submitted: 'bg-accent/15 text-accent border-accent/30',
-    overdue: 'bg-destructive/10 text-destructive border-destructive/20',
-  };
+  const getDeadlinesForDay = (day) =>
+    deadlines.filter(d => d.date && isSameDay(new Date(d.date), day));
 
   return (
-    <Card className="border-none shadow-sm">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base font-heading">
-            <CalendarDays className="w-5 h-5 text-primary" />
-            Report Due Dates
-          </CardTitle>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <span className="text-sm font-medium min-w-[120px] text-center">
-              {format(currentMonth, 'MMMM yyyy')}
-            </span>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
-          {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
-            <div key={d} className="bg-muted p-2 text-center text-xs font-medium text-muted-foreground">{d}</div>
-          ))}
-          {paddingDays.map((_, i) => (
-            <div key={`pad-${i}`} className="bg-card p-2 min-h-[60px]" />
-          ))}
-          {days.map((day) => {
-            const dayReports = getReportsForDay(day);
-            return (
-              <div
-                key={day.toISOString()}
-                className={`bg-card p-1.5 min-h-[60px] ${isToday(day) ? 'ring-2 ring-primary ring-inset' : ''}`}
-              >
-                <span className={`text-xs font-medium ${isToday(day) ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
-                  {format(day, 'd')}
+    <>
+      <Card className="border-none shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CardTitle className="flex items-center gap-2 text-base font-heading">
+                <CalendarDays className="w-5 h-5 text-primary" />
+                Upcoming Deadlines
+              </CardTitle>
+              {/* Legend */}
+              <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-2.5 h-2.5 rounded-sm bg-primary/20 border border-primary/30" />
+                  Report
                 </span>
-                {dayReports.slice(0, 2).map((r) => (
-                  <Link key={r.id} to={`/projects/${r.project_id}?tab=reports`}>
-                    <div className={`mt-0.5 px-1 py-0.5 rounded text-[10px] font-medium truncate border ${statusColors[r.status] || statusColors.upcoming}`}>
-                      {r.title}
-                    </div>
-                  </Link>
-                ))}
-                {dayReports.length > 2 && (
-                  <span className="text-[10px] text-muted-foreground">+{dayReports.length - 2} more</span>
-                )}
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-2.5 h-2.5 rounded-sm bg-amber-100 border border-amber-300" />
+                  Proposal
+                </span>
               </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-sm font-medium min-w-[120px] text-center">
+                {format(currentMonth, 'MMMM yyyy')}
+              </span>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
+            {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
+              <div key={d} className="bg-muted p-2 text-center text-xs font-medium text-muted-foreground">{d}</div>
+            ))}
+            {paddingDays.map((_, i) => (
+              <div key={`pad-${i}`} className="bg-card p-2 min-h-[60px]" />
+            ))}
+            {days.map((day) => {
+              const dayDeadlines = getDeadlinesForDay(day);
+              return (
+                <div
+                  key={day.toISOString()}
+                  className={`bg-card p-1.5 min-h-[60px] ${isToday(day) ? 'ring-2 ring-primary ring-inset' : ''}`}
+                >
+                  <span className={`text-xs font-medium ${isToday(day) ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
+                    {format(day, 'd')}
+                  </span>
+                  {dayDeadlines.slice(0, 2).map((d) => (
+                    <button
+                      key={d.id}
+                      onClick={() => setSelectedDeadline(d)}
+                      className={`w-full mt-0.5 px-1 py-0.5 rounded text-[10px] font-medium truncate border text-left hover:opacity-80 transition-opacity cursor-pointer ${DEADLINE_STYLES[d.type]}`}
+                    >
+                      {d.title}
+                    </button>
+                  ))}
+                  {dayDeadlines.length > 2 && (
+                    <button
+                      onClick={() => setSelectedDeadline(dayDeadlines[2])}
+                      className="text-[10px] text-muted-foreground hover:text-foreground"
+                    >
+                      +{dayDeadlines.length - 2} more
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {selectedDeadline && (
+        <DeadlineDetailPopup
+          deadline={selectedDeadline}
+          onClose={() => setSelectedDeadline(null)}
+        />
+      )}
+    </>
   );
 }
