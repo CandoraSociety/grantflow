@@ -93,9 +93,11 @@ export default function NotesTab({ projectId, notes }) {
               <Label>Photo of Handwritten Notes (optional)</Label>
               <div className="flex items-center gap-3">
                 <label className="cursor-pointer">
-                  <Button variant="outline" className="gap-2 pointer-events-none" size="sm">
-                    <Image className="w-4 h-4" />
-                    {photoFile ? photoFile.name : 'Upload Photo'}
+                  <Button variant="outline" className="gap-2" size="sm" asChild>
+                    <span>
+                      <Image className="w-4 h-4" />
+                      {photoFile ? photoFile.name : 'Upload Photo'}
+                    </span>
                   </Button>
                   <input type="file" className="hidden" accept="image/*" onChange={e => setPhotoFile(e.target.files[0])} />
                 </label>
