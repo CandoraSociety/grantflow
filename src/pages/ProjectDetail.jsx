@@ -169,7 +169,7 @@ export default function ProjectDetail() {
           <DocumentsTab projectId={id} documents={documents} />
         )}
         {activeTab === 'notes' && (
-          <NotesTab projectId={id} notes={notes} />
+          <NotesTab projectId={id} notes={notes} documents={documents} />
         )}
         {activeTab === 'reports' && (
           <ReportsTab projectId={id} project={project} reports={reports} />

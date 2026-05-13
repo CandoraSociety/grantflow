@@ -6,15 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Image, Loader2, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Image, Loader2, Sparkles, ChevronDown, ChevronUp, Link as LinkIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
-export default function NotesTab({ projectId, notes }) {
+export default function NotesTab({ projectId, notes, documents }) {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: '', content: '' });
-  const [photoFile, setPhotoFile] = useState(null);
+  const [form, setForm] = useState({ title: '', content: '', photos: [], linked_documents: [] });
+  const [handwrittenPhoto, setHandwrittenPhoto] = useState(null);
+  const [otherPhoto, setOtherPhoto] = useState(null);
   const [saving, setSaving] = useState(false);
   const [expandedNotes, setExpandedNotes] = useState({});
   const [extractingId, setExtractingId] = useState(null);
@@ -26,42 +27,49 @@ export default function NotesTab({ projectId, notes }) {
 
   const handleSave = async () => {
     setSaving(true);
-    let photo_url = null;
-    let extracted_text = null;
+    const photos = [];
 
-    if (photoFile) {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: photoFile });
-      photo_url = file_url;
-      extracted_text = await base44.integrations.Core.InvokeLLM({
+    if (handwrittenPhoto) {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: handwrittenPhoto });
+      const extracted = await base44.integrations.Core.InvokeLLM({
         prompt: 'Please transcribe all handwritten or printed text from this image exactly as written. Preserve the structure and formatting.',
         file_urls: [file_url],
       });
+      photos.push({ url: file_url, type: 'handwritten', extracted_text: extracted });
+    }
+
+    if (otherPhoto) {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: otherPhoto });
+      photos.push({ url: file_url, type: 'other' });
     }
 
     await base44.entities.ProjectNote.create({
       project_id: projectId,
       title: form.title || 'Untitled Note',
       content: form.content,
-      photo_url,
-      extracted_text,
+      photos: photos.length > 0 ? photos : undefined,
+      linked_documents: form.linked_documents.length > 0 ? form.linked_documents : undefined,
     });
 
     queryClient.invalidateQueries({ queryKey: ['notes', projectId] });
-    setForm({ title: '', content: '' });
-    setPhotoFile(null);
+    setForm({ title: '', content: '', photos: [], linked_documents: [] });
+    setHandwrittenPhoto(null);
+    setOtherPhoto(null);
     setShowForm(false);
     setSaving(false);
     toast.success('Note saved');
   };
 
-  const handleExtractFromPhoto = async (note) => {
-    if (!note.photo_url) return;
-    setExtractingId(note.id);
+  const handleExtractFromPhoto = async (note, photoIndex) => {
+    const photos = note.photos || [];
+    if (!photos[photoIndex]) return;
+    setExtractingId(`${note.id}-${photoIndex}`);
     const text = await base44.integrations.Core.InvokeLLM({
       prompt: 'Please transcribe all handwritten or printed text from this image exactly as written. Preserve the structure.',
-      file_urls: [note.photo_url],
+      file_urls: [photos[photoIndex].url],
     });
-    await base44.entities.ProjectNote.update(note.id, { extracted_text: text });
+    photos[photoIndex].extracted_text = text;
+    await base44.entities.ProjectNote.update(note.id, { photos });
     queryClient.invalidateQueries({ queryKey: ['notes', projectId] });
     setExtractingId(null);
     toast.success('Text extracted from photo');
@@ -89,20 +97,60 @@ export default function NotesTab({ projectId, notes }) {
               <Label>Content</Label>
               <Textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} placeholder="Write your notes here..." rows={5} />
             </div>
-            <div className="space-y-1">
-              <Label>Photo of Handwritten Notes (optional)</Label>
-              <div className="flex items-center gap-3">
-                <label className="cursor-pointer">
-                  <Button variant="outline" className="gap-2" size="sm" asChild>
-                    <span>
-                      <Image className="w-4 h-4" />
-                      {photoFile ? photoFile.name : 'Upload Photo'}
-                    </span>
-                  </Button>
-                  <input type="file" className="hidden" accept="image/*" onChange={e => setPhotoFile(e.target.files[0])} />
-                </label>
-                {photoFile && <span className="text-xs text-muted-foreground">Will be auto-transcribed with AI</span>}
+            <div className="space-y-3">
+              <div>
+                <Label>Handwritten Notes Photo (optional)</Label>
+                <div className="flex items-center gap-3 mt-1">
+                  <label className="cursor-pointer">
+                    <Button variant="outline" className="gap-2" size="sm" asChild>
+                      <span>
+                        <Image className="w-4 h-4" />
+                        {handwrittenPhoto ? handwrittenPhoto.name : 'Upload Handwritten'}
+                      </span>
+                    </Button>
+                    <input type="file" className="hidden" accept="image/*" onChange={e => setHandwrittenPhoto(e.target.files[0])} />
+                  </label>
+                  {handwrittenPhoto && <span className="text-xs text-muted-foreground">Auto-transcribed</span>}
+                </div>
               </div>
+              <div>
+                <Label>Other Photos (optional)</Label>
+                <div className="flex items-center gap-3 mt-1">
+                  <label className="cursor-pointer">
+                    <Button variant="outline" className="gap-2" size="sm" asChild>
+                      <span>
+                        <Image className="w-4 h-4" />
+                        {otherPhoto ? otherPhoto.name : 'Upload Other Photo'}
+                      </span>
+                    </Button>
+                    <input type="file" className="hidden" accept="image/*" onChange={e => setOtherPhoto(e.target.files[0])} />
+                  </label>
+                </div>
+              </div>
+              {documents?.length > 0 && (
+                <div>
+                  <Label>Link Project Documents (optional)</Label>
+                  <div className="mt-1 space-y-1">
+                    {documents.map(doc => (
+                      <label key={doc.id} className="flex items-center gap-2 cursor-pointer p-2 hover:bg-secondary rounded text-sm">
+                        <input
+                          type="checkbox"
+                          checked={form.linked_documents.includes(doc.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setForm({ ...form, linked_documents: [...form.linked_documents, doc.id] });
+                            } else {
+                              setForm({ ...form, linked_documents: form.linked_documents.filter(id => id !== doc.id) });
+                            }
+                          }}
+                        />
+                        <LinkIcon className="w-3 h-3 text-muted-foreground" />
+                        {doc.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
@@ -138,15 +186,32 @@ export default function NotesTab({ projectId, notes }) {
                       {note.content}
                     </p>
                   )}
-                  {note.photo_url && (
-                    <div className="mt-3">
-                      <img src={note.photo_url} alt="Handwritten note" className="max-h-48 rounded-lg object-contain border" />
+                  {note.photos?.map((photo, idx) => (
+                    <div key={idx} className="mt-3">
+                      <div className="text-xs font-medium text-muted-foreground mb-1 capitalize">{photo.type} Photo</div>
+                      <img src={photo.url} alt={`${photo.type} note`} className="max-h-48 rounded-lg object-contain border" />
+                      {photo.extracted_text && (
+                        <div className="mt-2 p-2 bg-secondary rounded text-xs">
+                          <p className="font-medium text-muted-foreground mb-1">Transcribed</p>
+                          <p className={!expandedNotes[note.id] ? 'line-clamp-2' : ''}>{photo.extracted_text}</p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {note.extracted_text && (
-                    <div className="mt-3 p-3 bg-secondary rounded-lg">
-                      <p className="text-xs font-medium text-muted-foreground mb-1">Transcribed Text</p>
-                      <p className={`text-xs ${!expandedNotes[note.id] ? 'line-clamp-3' : ''}`}>{note.extracted_text}</p>
+                  ))}
+                  {note.linked_documents?.length > 0 && (
+                    <div className="mt-3 space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground">Linked Documents</p>
+                      <div className="flex flex-wrap gap-1">
+                        {note.linked_documents.map(docId => {
+                          const doc = documents?.find(d => d.id === docId);
+                          return doc ? (
+                            <span key={docId} className="text-xs bg-secondary px-2 py-1 rounded flex items-center gap-1">
+                              <LinkIcon className="w-2.5 h-2.5" />
+                              {doc.name}
+                            </span>
+                          ) : null;
+                        })}
+                      </div>
                     </div>
                   )}
                   <button className="text-xs text-primary mt-1" onClick={() => toggleExpand(note.id)}>
@@ -154,11 +219,13 @@ export default function NotesTab({ projectId, notes }) {
                   </button>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  {note.photo_url && !note.extracted_text && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleExtractFromPhoto(note)} disabled={extractingId === note.id}>
-                      {extractingId === note.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-primary" />}
-                    </Button>
-                  )}
+                  {note.photos?.map((photo, idx) => (
+                    photo.type === 'handwritten' && !photo.extracted_text && (
+                      <Button key={idx} variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleExtractFromPhoto(note, idx)} disabled={extractingId === `${note.id}-${idx}`}>
+                        {extractingId === `${note.id}-${idx}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-primary" />}
+                      </Button>
+                    )
+                  ))}
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteMutation.mutate(note.id)}>
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>

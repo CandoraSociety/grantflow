@@ -16,11 +16,40 @@
     },
     "photo_url": {
       "type": "string",
-      "description": "Photo of handwritten notes"
+      "description": "Photo of handwritten notes (legacy)"
     },
     "extracted_text": {
       "type": "string",
-      "description": "AI-extracted text from photo"
+      "description": "AI-extracted text from handwritten photo"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "handwritten",
+              "other"
+            ]
+          },
+          "extracted_text": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Additional photos with type categorization"
+    },
+    "linked_documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Project document IDs linked to this note"
     },
     "tags": {
       "type": "array",
