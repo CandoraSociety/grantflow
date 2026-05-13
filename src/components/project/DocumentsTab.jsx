@@ -106,13 +106,14 @@ export default function DocumentsTab({ projectId, documents }) {
             </div>
             <div className="space-y-1">
               <Label className="text-xs">File</Label>
-              <label className="cursor-pointer">
-                <Button variant="outline" className="w-full gap-2 pointer-events-none" disabled={uploading}>
-                  {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                  {uploading ? 'Uploading...' : 'Choose File'}
-                </Button>
-                <input type="file" className="hidden" onChange={handleUpload} accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" />
-              </label>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                onChange={handleUpload}
+                disabled={uploading}
+                className="w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border file:border-input file:text-xs file:font-medium file:bg-secondary file:text-foreground hover:file:bg-accent hover:file:text-accent-foreground cursor-pointer"
+              />
+              {uploading && <p className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Uploading...</p>}
             </div>
           </div>
         </CardContent>
