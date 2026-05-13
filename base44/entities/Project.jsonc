@@ -20,6 +20,17 @@
       "default": "grant",
       "description": "Type of submission"
     },
+    "proposal_category": {
+      "type": "string",
+      "enum": [
+        "core_funder",
+        "social_enterprise",
+        "new_programs",
+        "program_expansions",
+        "other"
+      ],
+      "description": "Proposal category for filtering"
+    },
     "funder_name": {
       "type": "string",
       "description": "Name of the receiving/issuing organization"

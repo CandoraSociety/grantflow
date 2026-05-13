@@ -13,6 +13,7 @@ import ProjectDetail from '@/pages/ProjectDetail';
 import Reports from '@/pages/Reports';
 import Funders from '@/pages/Funders';
 import FileStorage from '@/pages/FileStorage';
+import Submissions from '@/pages/Submissions';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -41,6 +42,7 @@ const AuthenticatedApp = () => {
         <Route path="/projects" element={<Projects />} />
         <Route path="/projects/new" element={<NewProject />} />
         <Route path="/projects/:id" element={<ProjectDetail />} />
+        <Route path="/submissions" element={<Submissions />} />
         <Route path="/funders" element={<Funders />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/files" element={<FileStorage />} />

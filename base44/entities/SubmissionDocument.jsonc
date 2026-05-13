@@ -1,0 +1,57 @@
+{
+  "name": "SubmissionDocument",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Associated project ID"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "Uploaded file URL"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Original file name"
+    },
+    "section_heading": {
+      "type": "string",
+      "description": "Optional section heading/category for grouping"
+    },
+    "preset_type": {
+      "type": "string",
+      "enum": [
+        "certificate_incorporation",
+        "proof_insurance",
+        "audited_statements",
+        "nonprofit_status",
+        "board_minutes",
+        "conflict_of_interest",
+        "financial_statements",
+        "tax_returns",
+        "w9_form",
+        "custom"
+      ],
+      "description": "Preset document type if applicable"
+    },
+    "is_submitted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this document has been submitted"
+    },
+    "submitted_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date/time of submission"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes about the document"
+    }
+  },
+  "required": [
+    "project_id",
+    "file_url",
+    "file_name"
+  ]
+}
