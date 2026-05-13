@@ -193,43 +193,45 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
     <div className="flex gap-4 h-full min-h-0">
       {/* Sidebar - Section Navigator */}
       <div className="w-48 flex-shrink-0 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-muted-foreground">{completedCount}/{sections.length} complete</span>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Manage Templates" onClick={() => setShowTemplateModal(true)}>
-              <LayoutTemplate className="w-3.5 h-3.5" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Customize Sections" onClick={() => setShowPickerModal(true)}>
-              <Settings2 className="w-3.5 h-3.5" />
-            </Button>
-            <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs" onClick={() => setShowDocModal(true)} disabled={sections.length === 0}>
-              <FileDown className="w-3 h-3" /> Export
-            </Button>
-            <Button
-              variant={showNotesPanel ? 'secondary' : 'ghost'}
-              size="sm" className="gap-1 h-7 text-xs"
-              title="Quick Notes"
-              onClick={() => setShowNotesPanel(v => !v)}
-            >
-              <StickyNote className="w-3 h-3" /> Notes
-            </Button>
-            {wordDocs.length > 0 && (
-              <Select value={wordDocId || ''} onValueChange={v => setWordDocId(v === '' ? null : v)}>
-                <SelectTrigger className="h-7 text-xs w-36 border-dashed gap-1">
-                  <FileCode2 className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                  <SelectValue placeholder="Word doc…" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={null}>— None —</SelectItem>
-                  {wordDocs.map(d => (
-                    <SelectItem key={d.id} value={d.id}>
-                      <span className="truncate max-w-[160px] block">{d.name}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">{completedCount}/{sections.length} complete</span>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Manage Templates" onClick={() => setShowTemplateModal(true)}>
+                <LayoutTemplate className="w-3.5 h-3.5" />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Customize Sections" onClick={() => setShowPickerModal(true)}>
+                <Settings2 className="w-3.5 h-3.5" />
+              </Button>
+              <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs" onClick={() => setShowDocModal(true)} disabled={sections.length === 0}>
+                <FileDown className="w-3 h-3" /> Export
+              </Button>
+              <Button
+                variant={showNotesPanel ? 'secondary' : 'ghost'}
+                size="sm" className="gap-1 h-7 text-xs"
+                title="Quick Notes"
+                onClick={() => setShowNotesPanel(v => !v)}
+              >
+                <StickyNote className="w-3 h-3" /> Notes
+              </Button>
+            </div>
           </div>
+          {wordDocs.length > 0 && (
+            <Select value={wordDocId || ''} onValueChange={v => setWordDocId(v === '' ? null : v)}>
+              <SelectTrigger className="h-7 text-xs w-full border-dashed gap-1">
+                <FileCode2 className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                <SelectValue placeholder="Word doc…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>— None —</SelectItem>
+                {wordDocs.map(d => (
+                  <SelectItem key={d.id} value={d.id}>
+                    <span className="truncate max-w-[160px] block">{d.name}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         {sections.length === 0 ? (
