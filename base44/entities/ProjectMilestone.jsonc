@@ -1,0 +1,42 @@
+{
+  "name": "ProjectMilestone",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Associated project ID"
+    },
+    "title": {
+      "type": "string",
+      "description": "Milestone name"
+    },
+    "milestone_type": {
+      "type": "string",
+      "enum": [
+        "site_visit",
+        "questions_deadline",
+        "grant_open_date",
+        "interview",
+        "review_meeting",
+        "notice_of_award",
+        "other"
+      ],
+      "default": "other",
+      "description": "Type of milestone"
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date and time of the milestone"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "project_id",
+    "title",
+    "date"
+  ]
+}

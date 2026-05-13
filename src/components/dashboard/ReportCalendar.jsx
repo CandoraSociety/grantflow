@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isSameDay, addMonths, subMonths } from 'date-fns';
 import DeadlineDetailPopup from './DeadlineDetailPopup';
 
-// Build a unified list of deadlines from both reports and projects
-function buildDeadlines(reports, projects) {
+// Build a unified list of deadlines from reports, projects, and milestones
+function buildDeadlines(reports, projects, milestones = []) {
   const deadlines = [];
 
   reports.forEach(r => {
@@ -41,19 +41,36 @@ function buildDeadlines(reports, projects) {
     });
   });
 
+  milestones.forEach(m => {
+    if (!m.date) return;
+    const project = projects.find(p => p.id === m.project_id);
+    deadlines.push({
+      id: `milestone-${m.id}`,
+      type: 'milestone',
+      date: m.date,
+      title: m.title,
+      project_id: m.project_id,
+      projectTitle: project?.title || 'Unknown Project',
+      funderName: project?.funder_name,
+      milestoneType: m.milestone_type,
+      notes: m.notes,
+    });
+  });
+
   return deadlines;
 }
 
 const DEADLINE_STYLES = {
   report: 'bg-primary/10 text-primary border-primary/20',
   proposal: 'bg-amber-100 text-amber-700 border-amber-200',
+  milestone: 'bg-purple-100 text-purple-700 border-purple-200',
 };
 
-export default function ReportCalendar({ reports, projects }) {
+export default function ReportCalendar({ reports, projects, milestones = [] }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDeadline, setSelectedDeadline] = useState(null);
 
-  const deadlines = buildDeadlines(reports, projects);
+  const deadlines = buildDeadlines(reports, projects, milestones);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -82,6 +99,10 @@ export default function ReportCalendar({ reports, projects }) {
                 <span className="flex items-center gap-1">
                   <span className="inline-block w-2.5 h-2.5 rounded-sm bg-amber-100 border border-amber-300" />
                   Proposal
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-2.5 h-2.5 rounded-sm bg-purple-100 border border-purple-300" />
+                  Milestone
                 </span>
               </div>
             </div>

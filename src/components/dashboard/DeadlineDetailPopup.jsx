@@ -1,6 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { X, ArrowRight, FileText, CalendarCheck } from 'lucide-react';
+import { X, ArrowRight, FileText, CalendarCheck, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
@@ -28,13 +28,20 @@ export default function DeadlineDetailPopup({ deadline, onClose }) {
 
   const isReport = deadline.type === 'report';
   const isProposal = deadline.type === 'proposal';
+  const isMilestone = deadline.type === 'milestone';
+
+  const milestoneTypeLabels = {
+    site_visit: 'Site Visit',
+    questions_deadline: 'Questions Deadline',
+    grant_open_date: 'Grant Open Date',
+    interview: 'Interview',
+    review_meeting: 'Review Meeting',
+    notice_of_award: 'Notice of Award',
+    other: 'Other',
+  };
 
   const handleNavigate = () => {
-    if (isReport) {
-      navigate(`/projects/${deadline.project_id}?tab=reports`);
-    } else if (isProposal) {
-      navigate(`/projects/${deadline.project_id}`);
-    }
+    navigate(`/projects/${deadline.project_id}`);
     onClose();
   };
 
@@ -48,12 +55,12 @@ export default function DeadlineDetailPopup({ deadline, onClose }) {
         {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
-            <div className={`p-2 rounded-lg ${isProposal ? 'bg-amber-100 text-amber-600' : 'bg-primary/10 text-primary'}`}>
-              {isProposal ? <CalendarCheck className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+            <div className={`p-2 rounded-lg ${isProposal ? 'bg-amber-100 text-amber-600' : isMilestone ? 'bg-purple-100 text-purple-600' : 'bg-primary/10 text-primary'}`}>
+              {isProposal ? <CalendarCheck className="w-4 h-4" /> : isMilestone ? <MapPin className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
             </div>
             <div>
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                {isProposal ? 'Proposal Deadline' : 'Report Due'}
+                {isProposal ? 'Proposal Deadline' : isMilestone ? (milestoneTypeLabels[deadline.milestoneType] || 'Milestone') : 'Report Due'}
               </p>
               <h3 className="font-semibold text-sm leading-tight">{deadline.title}</h3>
             </div>
@@ -106,6 +113,12 @@ export default function DeadlineDetailPopup({ deadline, onClose }) {
               <span className="font-medium capitalize">{deadline.reportType.replace('_', ' ')}</span>
             </div>
           )}
+          {isMilestone && deadline.milestoneType && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Type</span>
+              <span className="font-medium">{milestoneTypeLabels[deadline.milestoneType] || deadline.milestoneType}</span>
+            </div>
+          )}
 
           {deadline.notes && (
             <div className="pt-1 border-t border-border">
@@ -117,7 +130,7 @@ export default function DeadlineDetailPopup({ deadline, onClose }) {
 
         {/* CTA */}
         <Button className="w-full gap-2" onClick={handleNavigate}>
-          {isProposal ? 'Go to Project' : 'Go to Report'}
+          {isReport ? 'Go to Report' : 'Go to Project'}
           <ArrowRight className="w-4 h-4" />
         </Button>
       </div>
