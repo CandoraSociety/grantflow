@@ -172,6 +172,13 @@ Write original, compelling content for the "${section.title}" section of this pr
         {dirty && (
           <p className="text-xs text-muted-foreground">Unsaved changes — click Save to keep your work</p>
         )}
+        {activeWordDoc && (
+          <WordDocImporter
+            doc={activeWordDoc}
+            onClose={() => setWordDocId(null)}
+            onInsertText={t => { setContent(prev => prev ? prev + '\n\n' + t : t); setDirty(true); }}
+          />
+        )}
       </div>
     </div>
   );
