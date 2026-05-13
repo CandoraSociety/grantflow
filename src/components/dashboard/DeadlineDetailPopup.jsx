@@ -67,7 +67,7 @@ export default function DeadlineDetailPopup({ deadline, onClose }) {
         <div className="space-y-2.5 mb-5">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Date</span>
-            <span className="font-medium">{format(new Date(deadline.date), 'MMMM d, yyyy')}</span>
+            <span className="font-medium">{format(new Date(deadline.date), 'MMMM d, yyyy, h:mm a')}</span>
           </div>
 
           <div className="flex items-center justify-between text-sm">
@@ -77,7 +77,7 @@ export default function DeadlineDetailPopup({ deadline, onClose }) {
 
           {isProposal && deadline.funderName && (
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Funder</span>
+              <span className="text-muted-foreground">Funder / Contractee</span>
               <span className="font-medium text-right max-w-[180px] truncate">{deadline.funderName}</span>
             </div>
           )}
