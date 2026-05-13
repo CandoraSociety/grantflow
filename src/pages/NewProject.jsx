@@ -16,6 +16,7 @@ export default function NewProject() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
     title: '',
+    project_type: 'grant',
     funder_name: '',
     funder_type: '',
     description: '',
