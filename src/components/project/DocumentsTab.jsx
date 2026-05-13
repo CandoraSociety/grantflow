@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,18 +49,32 @@ const categoryColors = {
   submitted_report: 'bg-accent/10 text-accent',
 };
 
-function UploadPanel({ title, icon: Icon, accentClass, categories, onUpload, uploading, uploadingSection }) {
-  const [docName, setDocName] = useState('');
+function UploadPanel({ title, icon: Icon, accentClass, categories, onUpload, uploadProgress, uploadingSection }) {
   const [category, setCategory] = useState(categories[0].value);
+  const [dragging, setDragging] = useState(false);
+  const inputRef = useRef(null);
   const sectionKey = categories[0].value;
+  const isUploading = uploadingSection === sectionKey;
 
-  const handleChange = async (e) => {
-    await onUpload(e, docName, category);
-    setDocName('');
+  const handleFiles = async (files) => {
+    if (!files || files.length === 0) return;
+    await onUpload(Array.from(files), category, sectionKey);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragging(false);
+    handleFiles(e.dataTransfer.files);
   };
 
   return (
-    <Card className={`border-2 border-dashed transition-colors ${accentClass}`}>
+    <Card
+      className={`border-2 border-dashed transition-colors ${accentClass} ${dragging ? 'border-primary scale-[1.01]' : ''}`}
+      onDragOver={e => { e.preventDefault(); setDragging(true); }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={handleDrop}
+    >
       <CardHeader className="pb-3 pt-4 px-5">
         <CardTitle className="text-sm font-heading font-semibold flex items-center gap-2">
           <Icon className="w-4 h-4" />
@@ -68,11 +82,7 @@ function UploadPanel({ title, icon: Icon, accentClass, categories, onUpload, upl
         </CardTitle>
       </CardHeader>
       <CardContent className="px-5 pb-5">
-        <div className="grid sm:grid-cols-3 gap-3">
-          <div className="space-y-1">
-            <Label className="text-xs">Document Name</Label>
-            <Input value={docName} onChange={e => setDocName(e.target.value)} placeholder="Leave blank to use filename" />
-          </div>
+        <div className="grid sm:grid-cols-2 gap-3 mb-3">
           <div className="space-y-1">
             <Label className="text-xs">Category</Label>
             <Select value={category} onValueChange={setCategory}>
@@ -83,21 +93,27 @@ function UploadPanel({ title, icon: Icon, accentClass, categories, onUpload, upl
             </Select>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">File</Label>
+            <Label className="text-xs">Files <span className="text-muted-foreground font-normal">(select multiple or drag &amp; drop)</span></Label>
             <input
+              ref={inputRef}
               type="file"
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
-              onChange={handleChange}
-              disabled={uploading && uploadingSection === sectionKey}
+              multiple
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.webp"
+              onChange={e => handleFiles(e.target.files)}
+              disabled={isUploading}
               className="w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border file:border-input file:text-xs file:font-medium file:bg-secondary file:text-foreground hover:file:bg-accent hover:file:text-accent-foreground cursor-pointer"
             />
-            {uploading && uploadingSection === sectionKey && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <Loader2 className="w-3 h-3 animate-spin" /> Uploading...
-              </p>
-            )}
           </div>
         </div>
+        {isUploading && uploadProgress && (
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <Loader2 className="w-3 h-3 animate-spin" />
+            Uploading {uploadProgress.current} of {uploadProgress.total}...
+          </p>
+        )}
+        {!isUploading && (
+          <p className="text-xs text-muted-foreground">You can also drag &amp; drop files anywhere in this box</p>
+        )}
       </CardContent>
     </Card>
   );
@@ -169,8 +185,8 @@ function DocList({ docs, onExtract, onDelete, extractingId }) {
 
 export default function DocumentsTab({ projectId, documents }) {
   const queryClient = useQueryClient();
-  const [uploading, setUploading] = useState(false);
   const [uploadingSection, setUploadingSection] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(null);
   const [extractingId, setExtractingId] = useState(null);
 
   const deleteMutation = useMutation({
@@ -178,24 +194,28 @@ export default function DocumentsTab({ projectId, documents }) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['documents', projectId] }),
   });
 
-  const handleUpload = async (e, docName, category) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    setUploadingSection(category);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    await base44.entities.ProjectDocument.create({
-      project_id: projectId,
-      name: docName || file.name,
-      category,
-      file_url,
-      file_type: file.name.split('.').pop(),
-    });
+  const handleUpload = async (files, category, sectionKey) => {
+    if (!files || files.length === 0) return;
+    setUploadingSection(sectionKey);
+    setUploadProgress({ current: 0, total: files.length });
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      setUploadProgress({ current: i + 1, total: files.length });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.entities.ProjectDocument.create({
+        project_id: projectId,
+        name: file.name,
+        category,
+        file_url,
+        file_type: file.name.split('.').pop(),
+      });
+    }
+
     queryClient.invalidateQueries({ queryKey: ['documents', projectId] });
-    setUploading(false);
     setUploadingSection(null);
-    toast.success('Document uploaded');
-    e.target.value = '';
+    setUploadProgress(null);
+    toast.success(files.length > 1 ? `${files.length} documents uploaded` : 'Document uploaded');
   };
 
   const handleExtract = async (doc) => {
@@ -231,7 +251,7 @@ export default function DocumentsTab({ projectId, documents }) {
           accentClass="border-primary/20 hover:border-primary/40"
           categories={REFERENCE_CATEGORIES}
           onUpload={handleUpload}
-          uploading={uploading}
+          uploadProgress={uploadProgress}
           uploadingSection={uploadingSection}
         />
         {referenceDocs.length > 0
@@ -257,7 +277,7 @@ export default function DocumentsTab({ projectId, documents }) {
           accentClass="border-accent/20 hover:border-accent/40"
           categories={SUBMISSION_CATEGORIES}
           onUpload={handleUpload}
-          uploading={uploading}
+          uploadProgress={uploadProgress}
           uploadingSection={uploadingSection}
         />
         {submissionDocs.length > 0
