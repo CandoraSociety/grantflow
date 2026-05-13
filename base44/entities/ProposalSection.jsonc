@@ -1,0 +1,49 @@
+{
+  "name": "ProposalSection",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Associated project ID"
+    },
+    "title": {
+      "type": "string",
+      "description": "Section title"
+    },
+    "order_index": {
+      "type": "number",
+      "description": "Display order"
+    },
+    "content": {
+      "type": "string",
+      "description": "Rich text content of this section"
+    },
+    "is_complete": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this section is complete"
+    },
+    "section_type": {
+      "type": "string",
+      "enum": [
+        "narrative",
+        "budget",
+        "timeline",
+        "abstract",
+        "cover_letter",
+        "references",
+        "appendix",
+        "custom"
+      ],
+      "default": "custom"
+    },
+    "ai_suggestions": {
+      "type": "string",
+      "description": "AI-generated suggestions for this section"
+    }
+  },
+  "required": [
+    "project_id",
+    "title"
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Project/proposal title"
+    },
+    "funder_name": {
+      "type": "string",
+      "description": "Name of the funding source"
+    },
+    "funder_type": {
+      "type": "string",
+      "enum": [
+        "federal",
+        "state",
+        "local",
+        "foundation",
+        "corporate",
+        "other"
+      ],
+      "description": "Type of funding source"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "research",
+        "drafting",
+        "review",
+        "submitted",
+        "awarded",
+        "declined",
+        "reporting"
+      ],
+      "default": "research",
+      "description": "Current status of the project"
+    },
+    "submission_deadline": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Deadline for proposal submission"
+    },
+    "award_amount": {
+      "type": "number",
+      "description": "Requested or awarded amount"
+    },
+    "project_period_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Project start date"
+    },
+    "project_period_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Project end date"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief project description"
+    },
+    "progress_percentage": {
+      "type": "number",
+      "default": 0,
+      "description": "Auto-calculated progress percentage"
+    },
+    "proposal_approach": {
+      "type": "string",
+      "enum": [
+        "scratch",
+        "template_upload",
+        "ai_generated"
+      ],
+      "description": "How the proposal is being built"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for categorization"
+    }
+  },
+  "required": [
+    "title",
+    "funder_name"
+  ]
+}

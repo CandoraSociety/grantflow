@@ -1,0 +1,65 @@
+{
+  "name": "Report",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Associated project ID"
+    },
+    "title": {
+      "type": "string",
+      "description": "Report title"
+    },
+    "report_type": {
+      "type": "string",
+      "enum": [
+        "interim",
+        "annual",
+        "final",
+        "financial",
+        "narrative",
+        "custom"
+      ],
+      "description": "Type of report"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Report due date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "upcoming",
+        "in_progress",
+        "submitted",
+        "overdue"
+      ],
+      "default": "upcoming"
+    },
+    "submitted_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "Submitted report file"
+    },
+    "content": {
+      "type": "string",
+      "description": "Report content if built in-app"
+    },
+    "reminder_sent": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "title",
+    "due_date"
+  ]
+}

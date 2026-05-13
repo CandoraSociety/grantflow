@@ -1,0 +1,51 @@
+{
+  "name": "ProjectDocument",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Associated project ID"
+    },
+    "name": {
+      "type": "string",
+      "description": "Document name"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "funder_guidelines",
+        "proposal_template",
+        "budget_template",
+        "support_letter",
+        "audit_statement",
+        "insurance_proof",
+        "organizational_docs",
+        "reporting_template",
+        "submitted_report",
+        "other"
+      ],
+      "description": "Document category"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "Uploaded file URL"
+    },
+    "extracted_text": {
+      "type": "string",
+      "description": "AI-extracted text content"
+    },
+    "file_type": {
+      "type": "string",
+      "description": "File extension/type"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes about this document"
+    }
+  },
+  "required": [
+    "project_id",
+    "name",
+    "file_url"
+  ]
+}
