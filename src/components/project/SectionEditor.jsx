@@ -4,9 +4,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckCircle2, Circle, Trash2, Sparkles, Loader2, Save } from 'lucide-react';
+import { CheckCircle2, Circle, Trash2, Sparkles, Loader2, Save, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
 
 export default function SectionEditor({ section, projectId, project, documents, notes, onToggleComplete, onDelete }) {
   const queryClient = useQueryClient();
@@ -29,6 +30,33 @@ export default function SectionEditor({ section, projectId, project, documents, 
   });
 
   const handleSave = () => saveMutation.mutate({ content });
+
+  const handleExportWord = async () => {
+    const lines = content.split('\n');
+    const docParagraphs = [
+      new Paragraph({ text: section.title, heading: HeadingLevel.HEADING_1 }),
+      new Paragraph({ text: '' }),
+      ...lines.map(line =>
+        new Paragraph({
+          children: [new TextRun({ text: line, size: 24, font: 'Calibri' })],
+          spacing: { after: 120 },
+        })
+      ),
+    ];
+
+    const doc = new Document({
+      sections: [{ properties: {}, children: docParagraphs }],
+    });
+
+    const blob = await Packer.toBlob(doc);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${section.title.replace(/\s+/g, '_')}.docx`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Word document downloaded');
+  };
 
   const handleAiAssist = async () => {
     setAiLoading(true);
@@ -70,6 +98,10 @@ Write a professional, compelling ${section.title} section. Be specific and persu
           )}
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="gap-2" onClick={handleExportWord} disabled={!content}>
+            <FileDown className="w-3.5 h-3.5" />
+            Word
+          </Button>
           <Button variant="outline" size="sm" className="gap-2" onClick={handleAiAssist} disabled={aiLoading}>
             {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-primary" />}
             AI Assist
