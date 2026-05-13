@@ -4,11 +4,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckCircle2, Circle, Trash2, Sparkles, Loader2, Save, FileDown, FileText } from 'lucide-react';
+import { CheckCircle2, Circle, Trash2, Sparkles, Loader2, Save, FileDown, FileText, FileCode2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import WordDocImporter from './WordDocImporter';
 
 export default function SectionEditor({ section, projectId, project, documents, notes, selectedDocId, onSelectDoc, onToggleComplete, onDelete }) {
   const queryClient = useQueryClient();
@@ -16,7 +17,11 @@ export default function SectionEditor({ section, projectId, project, documents, 
   const [dirty, setDirty] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
 
+  const [wordDocId, setWordDocId] = useState(null);
+
   const refDocs = documents.filter(d => d.file_url);
+  const wordDocs = documents.filter(d => d.file_url && (d.file_type === 'docx' || d.name?.toLowerCase().endsWith('.docx')));
+  const activeWordDoc = wordDocs.find(d => d.id === wordDocId) || null;
 
   useEffect(() => {
     setContent(section.content || '');
@@ -114,6 +119,25 @@ Write original, compelling content for the "${section.title}" section of this pr
               <SelectContent>
                 <SelectItem value={null}>— None —</SelectItem>
                 {refDocs.map(d => (
+                  <SelectItem key={d.id} value={d.id}>
+                    <span className="truncate max-w-[180px] block">{d.name}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {wordDocs.length > 0 && (
+            <Select
+              value={wordDocId || ''}
+              onValueChange={v => setWordDocId(v === '' ? null : v)}
+            >
+              <SelectTrigger className="h-8 text-xs w-44 border-dashed">
+                <FileCode2 className="w-3.5 h-3.5 text-muted-foreground" />
+                <SelectValue placeholder="Import Word doc…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>— None —</SelectItem>
+                {wordDocs.map(d => (
                   <SelectItem key={d.id} value={d.id}>
                     <span className="truncate max-w-[180px] block">{d.name}</span>
                   </SelectItem>
