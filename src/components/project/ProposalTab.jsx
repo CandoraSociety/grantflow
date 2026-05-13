@@ -80,14 +80,16 @@ export default function ProposalTab({ projectId, project, sections, documents, n
     const notesText = notes.map(n => n.content || n.extracted_text).filter(Boolean).join('\n\n');
 
     const res = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are a grant writing expert. Based on the following funder guidelines and project notes, generate a list of required proposal sections with brief starter content for each.
+      prompt: `You are a grant writing expert helping draft a NEW proposal from scratch.
 
 Project: ${project.title}
 Funder: ${project.funder_name}
-${guidelineText ? `\nFunder Guidelines:\n${guidelineText.slice(0, 4000)}` : ''}
-${notesText ? `\nProject Notes:\n${notesText.slice(0, 2000)}` : ''}
+${guidelineText ? `\nFunder Guidelines (use ONLY to understand what sections are required and what the funder wants — do NOT copy this text into the proposal):\n${guidelineText.slice(0, 4000)}` : ''}
+${notesText ? `\nProject Notes (use as background context):\n${notesText.slice(0, 2000)}` : ''}
 
-Return a JSON array of sections: [{"title": "...", "section_type": "narrative|budget|timeline|abstract|custom", "content": "starter content..."}]`,
+Generate a list of proposal sections that this applicant needs to write. For each section, write a SHORT placeholder prompt (1-2 sentences) telling the user what they should write in that section — do NOT reproduce or paraphrase the funder guidelines text. The content should be an original writing prompt/guide for the applicant.
+
+Return a JSON array of sections: [{"title": "...", "section_type": "narrative|budget|timeline|abstract|custom", "content": "starter prompt for the user..."}]`,
       response_json_schema: {
         type: 'object',
         properties: {

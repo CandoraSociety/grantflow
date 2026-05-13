@@ -64,16 +64,16 @@ export default function SectionEditor({ section, projectId, project, documents, 
       .map(d => d.extracted_text).filter(Boolean).join('\n\n');
     const notesText = notes.map(n => n.content || n.extracted_text).filter(Boolean).join('\n\n');
 
-    const prompt = `You are an expert grant writer. Write high-quality content for the "${section.title}" section of a grant proposal.
+    const prompt = `You are an expert grant writer helping draft original proposal content.
 
 Project: ${project.title}
 Funder: ${project.funder_name}
 ${project.description ? `Project Description: ${project.description}` : ''}
-${guidelineText ? `\nFunder Guidelines:\n${guidelineText.slice(0, 3000)}` : ''}
+${guidelineText ? `\nFunder Guidelines / Reference Documents (for context ONLY — do NOT copy or paraphrase these into the proposal):\n${guidelineText.slice(0, 3000)}` : ''}
 ${notesText ? `\nProject Notes:\n${notesText.slice(0, 2000)}` : ''}
-${content ? `\nExisting Draft:\n${content}` : ''}
+${content ? `\nExisting Draft (improve and expand this):\n${content}` : ''}
 
-Write a professional, compelling ${section.title} section. Be specific and persuasive.`;
+Write original, compelling content for the "${section.title}" section of this proposal. The content must be written from the APPLICANT's perspective describing their own project — not the funder's perspective. Be specific, persuasive, and do not reproduce text from the reference documents.`;
 
     const result = await base44.integrations.Core.InvokeLLM({ prompt });
     setContent(result);
