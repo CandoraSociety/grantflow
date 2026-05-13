@@ -16,6 +16,8 @@ const REFERENCE_CATEGORIES = [
   { value: 'proposal_template', label: 'Proposal Template' },
   { value: 'budget_template', label: 'Budget Template' },
   { value: 'reporting_template', label: 'Reporting Template' },
+  { value: 'notes', label: 'Notes' },
+  { value: 'past_submissions', label: 'Past Relevant Submissions' },
   { value: 'other', label: 'Other Reference' },
 ];
 
@@ -37,6 +39,8 @@ const categoryColors = {
   proposal_template: 'bg-accent/10 text-accent',
   budget_template: 'bg-chart-3/20 text-yellow-700',
   reporting_template: 'bg-primary/10 text-primary',
+  notes: 'bg-chart-3/20 text-yellow-700',
+  past_submissions: 'bg-chart-4/20 text-purple-700',
   other: 'bg-secondary text-secondary-foreground',
   support_letter: 'bg-chart-4/20 text-purple-700',
   audit_statement: 'bg-secondary text-secondary-foreground',
