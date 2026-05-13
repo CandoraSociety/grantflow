@@ -101,7 +101,7 @@ export default function ProjectDetail() {
       return updated;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['project', id] });
+      queryClient.refetchQueries({ queryKey: ['project', id] });
       queryClient.invalidateQueries({ queryKey: ['project-documents'] });
     },
   });
