@@ -8,7 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, CheckCircle2, Circle, Loader2, Sparkles, Download, ChevronUp, ChevronDown, FileDown, Settings2, LayoutTemplate, ExternalLink, FileText, X, StickyNote } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2, Circle, Loader2, Sparkles, Download, ChevronUp, ChevronDown, FileDown, Settings2, LayoutTemplate, ExternalLink, FileText, X, StickyNote, FileCode2 } from 'lucide-react';
+import WordDocImporter from './WordDocImporter';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import SectionEditor from './SectionEditor';
@@ -181,6 +182,9 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
   const [docPanelDocId, setDocPanelDocId] = useState(null);
   const docPanelDoc = documents.find(d => d.id === docPanelDocId) || null;
   const [showNotesPanel, setShowNotesPanel] = useState(false);
+  const [wordDocId, setWordDocId] = useState(null);
+  const wordDocs = documents.filter(d => d.file_url && (d.file_type === 'docx' || d.name?.toLowerCase().endsWith('.docx')));
+  const activeWordDoc = wordDocs.find(d => d.id === wordDocId) || null;
 
   const completedCount = sections.filter(s => s.is_complete).length;
   const activeS = sections.find(s => s.id === activeSection);
@@ -209,6 +213,22 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
             >
               <StickyNote className="w-3 h-3" /> Notes
             </Button>
+            {wordDocs.length > 0 && (
+              <Select value={wordDocId || ''} onValueChange={v => setWordDocId(v === '' ? null : v)}>
+                <SelectTrigger className="h-7 text-xs w-36 border-dashed gap-1">
+                  <FileCode2 className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                  <SelectValue placeholder="Word doc…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>— None —</SelectItem>
+                  {wordDocs.map(d => (
+                    <SelectItem key={d.id} value={d.id}>
+                      <span className="truncate max-w-[160px] block">{d.name}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </div>
 
@@ -278,43 +298,56 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
       </div>
 
       {/* Main Content Area */}
-      <div className="flex gap-4 flex-1 min-w-0 overflow-hidden">
-        <div className={cn('flex flex-col min-w-0', (docPanelDoc || showNotesPanel) ? 'flex-1' : 'w-full')}>
-        {activeS ? (
-          <SectionEditor
-            section={activeS}
-            projectId={projectId}
-            project={project}
-            documents={documents}
-            notes={notes}
-            selectedDocId={docPanelDocId}
-            onSelectDoc={setDocPanelDocId}
-            onToggleComplete={() => toggleComplete(activeS)}
-            onDelete={() => deleteMutation.mutate(activeS.id)}
-          />
-        ) : (
-          <div className="h-64 flex flex-col items-center justify-center text-muted-foreground border-2 border-dashed border-border rounded-xl">
-            <p className="text-sm">Select a section to start editing</p>
-            {sections.length === 0 && (
-              <Button className="mt-4 gap-2" onClick={handleGenerateTemplate} disabled={generating}>
-                {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                AI Generate Template
-              </Button>
-            )}
+      <div className="flex flex-col gap-3 flex-1 min-w-0 overflow-hidden">
+        <div className="flex gap-4 flex-1 min-w-0 overflow-hidden">
+          <div className={cn('flex flex-col min-w-0', (docPanelDoc || showNotesPanel) ? 'flex-1' : 'w-full')}>
+          {activeS ? (
+            <SectionEditor
+              section={activeS}
+              projectId={projectId}
+              project={project}
+              documents={documents}
+              notes={notes}
+              selectedDocId={docPanelDocId}
+              onSelectDoc={setDocPanelDocId}
+              onToggleComplete={() => toggleComplete(activeS)}
+              onDelete={() => deleteMutation.mutate(activeS.id)}
+              onInsertText={(t) => {/* handled via ref or state lift */}}
+            />
+          ) : (
+            <div className="h-64 flex flex-col items-center justify-center text-muted-foreground border-2 border-dashed border-border rounded-xl">
+              <p className="text-sm">Select a section to start editing</p>
+              {sections.length === 0 && (
+                <Button className="mt-4 gap-2" onClick={handleGenerateTemplate} disabled={generating}>
+                  {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  AI Generate Template
+                </Button>
+              )}
+            </div>
+          )}
           </div>
-        )}
+
+          {/* Document Viewer Panel */}
+          {docPanelDoc && (
+            <DocViewerPanel doc={docPanelDoc} onClose={() => setDocPanelDocId(null)} />
+          )}
+
+          {/* Notes Quick-Access Panel */}
+          {showNotesPanel && (
+            <div className="flex-1 min-w-0" style={{ maxWidth: 320 }}>
+              <NotesPanel notes={notes} onClose={() => setShowNotesPanel(false)} />
+            </div>
+          )}
         </div>
 
-        {/* Document Viewer Panel */}
-        {docPanelDoc && (
-          <DocViewerPanel doc={docPanelDoc} onClose={() => setDocPanelDocId(null)} />
-        )}
-
-        {/* Notes Quick-Access Panel */}
-        {showNotesPanel && (
-          <div className="flex-1 min-w-0" style={{ maxWidth: 320 }}>
-            <NotesPanel notes={notes} onClose={() => setShowNotesPanel(false)} />
-          </div>
+        {/* Word Doc Importer — persists across section changes */}
+        {activeWordDoc && (
+          <WordDocImporter
+            doc={activeWordDoc}
+            projectId={projectId}
+            onClose={() => setWordDocId(null)}
+            onInsertText={null}
+          />
         )}
       </div>
 

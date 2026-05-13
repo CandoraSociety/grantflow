@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckCircle2, Circle, Trash2, Sparkles, Loader2, Save, FileDown, FileText, FileCode2 } from 'lucide-react';
+import { CheckCircle2, Circle, Trash2, Sparkles, Loader2, Save, FileDown, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import WordDocImporter from './WordDocImporter';
 
 export default function SectionEditor({ section, projectId, project, documents, notes, selectedDocId, onSelectDoc, onToggleComplete, onDelete }) {
   const queryClient = useQueryClient();
@@ -17,11 +14,7 @@ export default function SectionEditor({ section, projectId, project, documents, 
   const [dirty, setDirty] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
 
-  const [wordDocId, setWordDocId] = useState(null);
-
   const refDocs = documents.filter(d => d.file_url);
-  const wordDocs = documents.filter(d => d.file_url && (d.file_type === 'docx' || d.name?.toLowerCase().endsWith('.docx')));
-  const activeWordDoc = wordDocs.find(d => d.id === wordDocId) || null;
 
   useEffect(() => {
     setContent(section.content || '');
@@ -68,7 +61,8 @@ export default function SectionEditor({ section, projectId, project, documents, 
 
   const handleAiAssist = async () => {
     setAiLoading(true);
-    const guidelineText = documents.filter(d => ['funder_guidelines', 'proposal_template'].includes(d.category))
+    const guidelineText = documents
+      .filter(d => ['funder_guidelines', 'proposal_template'].includes(d.category))
       .map(d => d.extracted_text).filter(Boolean).join('\n\n');
     const notesText = notes.map(n => n.content || n.extracted_text).filter(Boolean).join('\n\n');
 
@@ -77,11 +71,11 @@ export default function SectionEditor({ section, projectId, project, documents, 
 Project: ${project.title}
 Funder: ${project.funder_name}
 ${project.description ? `Project Description: ${project.description}` : ''}
-${guidelineText ? `\nFunder Guidelines / Reference Documents (for context ONLY — do NOT copy or paraphrase these into the proposal):\n${guidelineText.slice(0, 3000)}` : ''}
+${guidelineText ? `\nFunder Guidelines (context only — do NOT copy):\n${guidelineText.slice(0, 3000)}` : ''}
 ${notesText ? `\nProject Notes:\n${notesText.slice(0, 2000)}` : ''}
 ${content ? `\nExisting Draft (improve and expand this):\n${content}` : ''}
 
-Write original, compelling content for the "${section.title}" section of this proposal. The content must be written from the APPLICANT's perspective describing their own project — not the funder's perspective. Be specific, persuasive, and do not reproduce text from the reference documents.`;
+Write original, compelling content for the "${section.title}" section of this proposal. Write from the APPLICANT's perspective. Be specific, persuasive, and do not reproduce text from the reference documents.`;
 
     const result = await base44.integrations.Core.InvokeLLM({ prompt });
     setContent(result);
@@ -91,77 +85,59 @@ Write original, compelling content for the "${section.title}" section of this pr
   };
 
   return (
-    <div className="space-y-4 h-full flex flex-col">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-3">
-          <button onClick={onToggleComplete} className="flex items-center gap-2">
-            {section.is_complete
-              ? <CheckCircle2 className="w-5 h-5 text-accent" />
-              : <Circle className="w-5 h-5 text-muted-foreground" />
-            }
-            <h2 className="font-heading font-semibold">{section.title}</h2>
-          </button>
-          {section.is_complete && (
-            <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium">Complete</span>
-          )}
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {refDocs.length > 0 && (
-            <Select
-              value={selectedDocId || ''}
-              onValueChange={v => onSelectDoc(v === '' ? null : v)}
-            >
-              <SelectTrigger className="h-8 text-xs w-44 border-dashed">
-                <FileText className="w-3.5 h-3.5 text-muted-foreground" />
-                <SelectValue placeholder="View a document…" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={null}>— None —</SelectItem>
-                {refDocs.map(d => (
-                  <SelectItem key={d.id} value={d.id}>
-                    <span className="truncate max-w-[180px] block">{d.name}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          {wordDocs.length > 0 && (
-            <Select
-              value={wordDocId || ''}
-              onValueChange={v => setWordDocId(v === '' ? null : v)}
-            >
-              <SelectTrigger className="h-8 text-xs w-44 border-dashed">
-                <FileCode2 className="w-3.5 h-3.5 text-muted-foreground" />
-                <SelectValue placeholder="Import Word doc…" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={null}>— None —</SelectItem>
-                {wordDocs.map(d => (
-                  <SelectItem key={d.id} value={d.id}>
-                    <span className="truncate max-w-[180px] block">{d.name}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          <Button variant="outline" size="sm" className="gap-2" onClick={handleExportWord} disabled={!content}>
-            <FileDown className="w-3.5 h-3.5" /> Word
-          </Button>
-          <Button variant="outline" size="sm" className="gap-2" onClick={handleAiAssist} disabled={aiLoading}>
-            {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-primary" />}
-            AI Assist
-          </Button>
-          <Button size="sm" className="gap-2" onClick={handleSave} disabled={!dirty || saveMutation.isPending}>
-            {saveMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            Save
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={onDelete}>
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
-        </div>
+    <div className="space-y-3 h-full flex flex-col">
+      {/* Row 1: Title */}
+      <div className="flex items-center gap-3">
+        <button onClick={onToggleComplete} className="flex items-center gap-2 min-w-0">
+          {section.is_complete
+            ? <CheckCircle2 className="w-5 h-5 text-accent flex-shrink-0" />
+            : <Circle className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+          }
+          <h2 className="font-heading font-semibold truncate">{section.title}</h2>
+        </button>
+        {section.is_complete && (
+          <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium flex-shrink-0">Complete</span>
+        )}
       </div>
 
+      {/* Row 2: Action buttons */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {refDocs.length > 0 && (
+          <Select
+            value={selectedDocId || ''}
+            onValueChange={v => onSelectDoc(v === '' ? null : v)}
+          >
+            <SelectTrigger className="h-8 text-xs w-44 border-dashed">
+              <FileText className="w-3.5 h-3.5 text-muted-foreground" />
+              <SelectValue placeholder="View a document…" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={null}>— None —</SelectItem>
+              {refDocs.map(d => (
+                <SelectItem key={d.id} value={d.id}>
+                  <span className="truncate max-w-[180px] block">{d.name}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <Button variant="outline" size="sm" className="gap-2" onClick={handleExportWord} disabled={!content}>
+          <FileDown className="w-3.5 h-3.5" /> Word
+        </Button>
+        <Button variant="outline" size="sm" className="gap-2" onClick={handleAiAssist} disabled={aiLoading}>
+          {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-primary" />}
+          AI Assist
+        </Button>
+        <Button size="sm" className="gap-2" onClick={handleSave} disabled={!dirty || saveMutation.isPending}>
+          {saveMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+          Save
+        </Button>
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={onDelete}>
+          <Trash2 className="w-3.5 h-3.5" />
+        </Button>
+      </div>
+
+      {/* Editor */}
       <div className="flex-1 flex flex-col gap-2">
         <Textarea
           value={content}
@@ -171,13 +147,6 @@ Write original, compelling content for the "${section.title}" section of this pr
         />
         {dirty && (
           <p className="text-xs text-muted-foreground">Unsaved changes — click Save to keep your work</p>
-        )}
-        {activeWordDoc && (
-          <WordDocImporter
-            doc={activeWordDoc}
-            onClose={() => setWordDocId(null)}
-            onInsertText={t => { setContent(prev => prev ? prev + '\n\n' + t : t); setDirty(true); }}
-          />
         )}
       </div>
     </div>
