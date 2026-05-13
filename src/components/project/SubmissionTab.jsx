@@ -25,7 +25,7 @@ const PRESET_DOCUMENTS = [
 export default function SubmissionTab({ projectId, project, submissionDocuments }) {
   const queryClient = useQueryClient();
   const [showUpload, setShowUpload] = useState(false);
-  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadFiles, setUploadFiles] = useState([]);
   const [sectionHeading, setSectionHeading] = useState('');
   const [selectedPresets, setSelectedPresets] = useState([]);
   const [activeTab, setActiveTab] = useState('upload');
@@ -35,9 +35,6 @@ export default function SubmissionTab({ projectId, project, submissionDocuments 
     mutationFn: async (data) => base44.entities.SubmissionDocument.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['submissionDocuments', projectId] });
-      setUploadFile(null);
-      setSectionHeading('');
-      toast.success('Document uploaded');
     },
   });
 
@@ -50,21 +47,38 @@ export default function SubmissionTab({ projectId, project, submissionDocuments 
   });
 
   const handleUploadDocument = async () => {
-    if (!uploadFile) {
-      toast.error('Please select a file');
+    if (uploadFiles.length === 0) {
+      toast.error('Please select at least one file');
       return;
     }
     setUploading(true);
-    const res = await base44.integrations.Core.UploadFile({ file: uploadFile });
-    await createMutation.mutateAsync({
-      project_id: projectId,
-      file_url: res.file_url,
-      file_name: uploadFile.name,
-      section_heading: sectionHeading || null,
-      preset_type: 'custom',
-    });
+    try {
+      for (const file of uploadFiles) {
+        const res = await base44.integrations.Core.UploadFile({ file });
+        await createMutation.mutateAsync({
+          project_id: projectId,
+          file_url: res.file_url,
+          file_name: file.name,
+          section_heading: sectionHeading || null,
+          preset_type: 'custom',
+        });
+      }
+      toast.success(`${uploadFiles.length} document${uploadFiles.length !== 1 ? 's' : ''} uploaded`);
+      setUploadFiles([]);
+      setSectionHeading('');
+      setShowUpload(false);
+    } catch (error) {
+      toast.error('Error uploading files');
+    }
     setUploading(false);
-    setShowUpload(false);
+  };
+
+  const handleFileSelect = (files) => {
+    setUploadFiles(prev => [...prev, ...Array.from(files)]);
+  };
+
+  const removeFile = (index) => {
+    setUploadFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSelectPresets = async () => {
@@ -129,17 +143,41 @@ export default function SubmissionTab({ projectId, project, submissionDocuments 
             <Card className="border border-primary/50 bg-primary/5">
               <CardContent className="p-4 space-y-3">
                 <div>
-                  <Label className="text-sm">Document File</Label>
+                  <Label className="text-sm">Document Files</Label>
                   <label className="cursor-pointer mt-2 block">
-                    <Button variant="outline" className="w-full gap-2" asChild>
-                      <span>
-                        <Upload className="w-4 h-4" />
-                        {uploadFile ? uploadFile.name : 'Choose File'}
-                      </span>
-                    </Button>
-                    <input type="file" className="hidden" onChange={e => setUploadFile(e.target.files[0])} />
+                    <div className="border-2 border-dashed border-primary/50 rounded-lg p-6 text-center hover:bg-primary/10 transition-colors">
+                      <Upload className="w-5 h-5 mx-auto mb-2 text-primary" />
+                      <p className="text-sm font-medium">Click to upload or drag files here</p>
+                      <p className="text-xs text-muted-foreground mt-1">Multiple files supported</p>
+                    </div>
+                    <input 
+                      type="file" 
+                      multiple 
+                      className="hidden" 
+                      onChange={e => handleFileSelect(e.target.files)} 
+                    />
                   </label>
                 </div>
+
+                {uploadFiles.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-foreground">Selected files ({uploadFiles.length}):</p>
+                    <div className="space-y-1 max-h-[200px] overflow-y-auto">
+                      {uploadFiles.map((file, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-2 bg-background rounded border border-border text-xs">
+                          <span className="truncate">{file.name}</span>
+                          <button 
+                            onClick={() => removeFile(idx)}
+                            className="text-muted-foreground hover:text-destructive ml-2"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <Label className="text-sm">Section Heading (optional)</Label>
                   <Input
@@ -150,11 +188,11 @@ export default function SubmissionTab({ projectId, project, submissionDocuments 
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" className="gap-2" onClick={handleUploadDocument} disabled={uploading}>
+                  <Button size="sm" className="gap-2" onClick={handleUploadDocument} disabled={uploading || uploadFiles.length === 0}>
                     {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-                    Upload
+                    Upload {uploadFiles.length > 0 && `(${uploadFiles.length})`}
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => setShowUpload(false)}>
+                  <Button size="sm" variant="outline" onClick={() => { setShowUpload(false); setUploadFiles([]); }}>
                     Cancel
                   </Button>
                 </div>
