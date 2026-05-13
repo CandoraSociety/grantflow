@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, CheckCircle2, Circle, Loader2, Sparkles, Download, ChevronUp, ChevronDown, FileDown, Settings2, LayoutTemplate } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2, Circle, Loader2, Sparkles, Download, ChevronUp, ChevronDown, FileDown, Settings2, LayoutTemplate, ExternalLink, FileText, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import SectionEditor from './SectionEditor';
@@ -176,13 +176,16 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
     toast.success('Template loaded');
   };
 
+  const [docPanelDocId, setDocPanelDocId] = useState(null);
+  const docPanelDoc = documents.find(d => d.id === docPanelDocId) || null;
+
   const completedCount = sections.filter(s => s.is_complete).length;
   const activeS = sections.find(s => s.id === activeSection);
 
   return (
-    <div className="flex gap-6 h-full">
+    <div className="flex gap-4 h-full min-h-0">
       {/* Sidebar - Section Navigator */}
-      <div className="w-52 flex-shrink-0 space-y-3">
+      <div className="w-48 flex-shrink-0 space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-muted-foreground">{completedCount}/{sections.length} complete</span>
           <div className="flex items-center gap-1">
@@ -264,7 +267,8 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0">
+      <div className={cn('flex gap-4 min-w-0', docPanelDoc ? 'flex-1' : 'flex-1')}>
+        <div className={cn('flex flex-col min-w-0', docPanelDoc ? 'w-1/2' : 'w-full')}>
         {activeS ? (
           <SectionEditor
             section={activeS}
@@ -272,6 +276,8 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
             project={project}
             documents={documents}
             notes={notes}
+            selectedDocId={docPanelDocId}
+            onSelectDoc={setDocPanelDocId}
             onToggleComplete={() => toggleComplete(activeS)}
             onDelete={() => deleteMutation.mutate(activeS.id)}
           />
@@ -284,6 +290,43 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
                 AI Generate Template
               </Button>
             )}
+          </div>
+        )}
+        </div>
+
+        {/* Document Viewer Panel */}
+        {docPanelDoc && (
+          <div className="w-1/2 flex flex-col border border-border rounded-lg overflow-hidden flex-shrink-0">
+            <div className="flex items-center justify-between px-3 py-2 bg-secondary border-b border-border flex-shrink-0">
+              <p className="text-xs font-medium truncate flex-1">{docPanelDoc.name}</p>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <a href={docPanelDoc.file_url} target="_blank" rel="noopener noreferrer">
+                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <ExternalLink className="w-3 h-3" />
+                  </Button>
+                </a>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setDocPanelDocId(null)}>
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto" style={{ minHeight: 480 }}>
+              {['pdf','png','jpg','jpeg','gif','webp'].includes((docPanelDoc.file_type || '').toLowerCase()) ? (
+                <iframe src={docPanelDoc.file_url} title={docPanelDoc.name} className="w-full h-full border-0" style={{ minHeight: 480 }} />
+              ) : docPanelDoc.extracted_text ? (
+                <div className="p-4 text-xs font-body leading-relaxed whitespace-pre-wrap text-foreground">
+                  {docPanelDoc.extracted_text}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full gap-3 p-6 text-center">
+                  <FileText className="w-10 h-10 text-muted-foreground/40" />
+                  <p className="text-sm text-muted-foreground">This file type can't be previewed inline.</p>
+                  <a href={docPanelDoc.file_url} target="_blank" rel="noopener noreferrer">
+                    <Button size="sm" variant="outline" className="gap-2"><ExternalLink className="w-3.5 h-3.5" /> Open File</Button>
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
