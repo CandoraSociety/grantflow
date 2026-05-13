@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, CheckCircle2, Circle, Loader2, Sparkles, Download, ChevronUp, ChevronDown, FileDown, Settings2, LayoutTemplate, ExternalLink, FileText, X } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2, Circle, Loader2, Sparkles, Download, ChevronUp, ChevronDown, FileDown, Settings2, LayoutTemplate, ExternalLink, FileText, X, StickyNote } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import SectionEditor from './SectionEditor';
@@ -16,6 +16,7 @@ import GenerateDocModal from './GenerateDocModal';
 import SectionPickerModal from './SectionPickerModal';
 import TemplateManagerModal from './TemplateManagerModal';
 import DocViewerPanel from './DocViewerPanel';
+import NotesPanel from './NotesPanel';
 
 const SECTION_TYPES = [
   { value: 'abstract', label: 'Abstract / Executive Summary' },
@@ -179,6 +180,7 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
 
   const [docPanelDocId, setDocPanelDocId] = useState(null);
   const docPanelDoc = documents.find(d => d.id === docPanelDocId) || null;
+  const [showNotesPanel, setShowNotesPanel] = useState(false);
 
   const completedCount = sections.filter(s => s.is_complete).length;
   const activeS = sections.find(s => s.id === activeSection);
@@ -198,6 +200,14 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
             </Button>
             <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs" onClick={() => setShowDocModal(true)} disabled={sections.length === 0}>
               <FileDown className="w-3 h-3" /> Export
+            </Button>
+            <Button
+              variant={showNotesPanel ? 'secondary' : 'ghost'}
+              size="sm" className="gap-1 h-7 text-xs"
+              title="Quick Notes"
+              onClick={() => setShowNotesPanel(v => !v)}
+            >
+              <StickyNote className="w-3 h-3" /> Notes
             </Button>
           </div>
         </div>
@@ -269,7 +279,7 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
 
       {/* Main Content Area */}
       <div className="flex gap-4 flex-1 min-w-0 overflow-hidden">
-        <div className={cn('flex flex-col min-w-0', docPanelDoc ? 'flex-1' : 'w-full')}>
+        <div className={cn('flex flex-col min-w-0', (docPanelDoc || showNotesPanel) ? 'flex-1' : 'w-full')}>
         {activeS ? (
           <SectionEditor
             section={activeS}
@@ -298,6 +308,13 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
         {/* Document Viewer Panel */}
         {docPanelDoc && (
           <DocViewerPanel doc={docPanelDoc} onClose={() => setDocPanelDocId(null)} />
+        )}
+
+        {/* Notes Quick-Access Panel */}
+        {showNotesPanel && (
+          <div className="flex-1 min-w-0" style={{ maxWidth: 320 }}>
+            <NotesPanel notes={notes} onClose={() => setShowNotesPanel(false)} />
+          </div>
         )}
       </div>
 
