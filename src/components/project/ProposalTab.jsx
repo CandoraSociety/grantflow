@@ -8,11 +8,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, CheckCircle2, Circle, Loader2, Sparkles, Download, ChevronUp, ChevronDown, FileDown } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2, Circle, Loader2, Sparkles, Download, ChevronUp, ChevronDown, FileDown, Settings2, LayoutTemplate } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import SectionEditor from './SectionEditor';
 import GenerateDocModal from './GenerateDocModal';
+import SectionPickerModal from './SectionPickerModal';
+import TemplateManagerModal from './TemplateManagerModal';
 
 const SECTION_TYPES = [
   { value: 'abstract', label: 'Abstract / Executive Summary' },
@@ -33,6 +35,8 @@ export default function ProposalTab({ projectId, project, sections, documents, n
   const [newSectionType, setNewSectionType] = useState('custom');
   const [generating, setGenerating] = useState(false);
   const [showDocModal, setShowDocModal] = useState(false);
+  const [showPickerModal, setShowPickerModal] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.ProposalSection.create(data),
@@ -126,6 +130,52 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
     toast.success(`Generated ${res.sections.length} sections`);
   };
 
+  const handleApplySections = async (pickedSections) => {
+    // Delete sections that were removed
+    const pickedTitles = new Set(pickedSections.map(s => s.title));
+    const toDelete = sections.filter(s => !pickedTitles.has(s.title));
+    for (const s of toDelete) {
+      await base44.entities.ProposalSection.delete(s.id);
+    }
+    // Add new ones that don't exist yet
+    const existingTitles = new Set(sections.map(s => s.title));
+    const toAdd = pickedSections.filter(s => !existingTitles.has(s.title));
+    for (let i = 0; i < toAdd.length; i++) {
+      await base44.entities.ProposalSection.create({
+        project_id: projectId,
+        title: toAdd[i].title,
+        section_type: toAdd[i].section_type || 'custom',
+        order_index: sections.length + i,
+        content: '',
+        is_complete: false,
+      });
+    }
+    queryClient.invalidateQueries({ queryKey: ['sections', projectId] });
+    setShowPickerModal(false);
+    toast.success('Sections updated');
+  };
+
+  const handleLoadTemplate = async (templateSections) => {
+    // Delete all current sections
+    for (const s of sections) {
+      await base44.entities.ProposalSection.delete(s.id);
+    }
+    // Create from template
+    for (let i = 0; i < templateSections.length; i++) {
+      await base44.entities.ProposalSection.create({
+        project_id: projectId,
+        title: templateSections[i].title,
+        section_type: templateSections[i].section_type || 'custom',
+        order_index: i,
+        content: '',
+        is_complete: false,
+      });
+    }
+    queryClient.invalidateQueries({ queryKey: ['sections', projectId] });
+    setActiveSection(null);
+    toast.success('Template loaded');
+  };
+
   const completedCount = sections.filter(s => s.is_complete).length;
   const activeS = sections.find(s => s.id === activeSection);
 
@@ -135,9 +185,17 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
       <div className="w-52 flex-shrink-0 space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-muted-foreground">{completedCount}/{sections.length} complete</span>
-          <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs" onClick={() => setShowDocModal(true)} disabled={sections.length === 0}>
-            <FileDown className="w-3 h-3" /> Export
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Manage Templates" onClick={() => setShowTemplateModal(true)}>
+              <LayoutTemplate className="w-3.5 h-3.5" />
+            </Button>
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0" title="Customize Sections" onClick={() => setShowPickerModal(true)}>
+              <Settings2 className="w-3.5 h-3.5" />
+            </Button>
+            <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs" onClick={() => setShowDocModal(true)} disabled={sections.length === 0}>
+              <FileDown className="w-3 h-3" /> Export
+            </Button>
+          </div>
         </div>
 
         {sections.length === 0 ? (
@@ -232,6 +290,20 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
 
       {showDocModal && (
         <GenerateDocModal sections={sections} project={project} onClose={() => setShowDocModal(false)} />
+      )}
+      {showPickerModal && (
+        <SectionPickerModal
+          currentSections={sections}
+          onApply={handleApplySections}
+          onClose={() => setShowPickerModal(false)}
+        />
+      )}
+      {showTemplateModal && (
+        <TemplateManagerModal
+          currentSections={sections}
+          onLoadTemplate={handleLoadTemplate}
+          onClose={() => setShowTemplateModal(false)}
+        />
       )}
     </div>
   );
