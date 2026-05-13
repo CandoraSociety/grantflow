@@ -2,7 +2,7 @@ import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, FolderOpen, FileText, FileArchive } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import StatsRow from '@/components/dashboard/StatsRow';
 import ProjectsList from '@/components/dashboard/ProjectsList';
@@ -87,6 +87,20 @@ export default function Dashboard() {
       </div>
 
       <CountdownBanner deadlines={allDeadlines} />
+
+      {/* File Storage quick link */}
+      <Link to="/files" className="block">
+        <div className="flex items-center gap-4 bg-card border rounded-xl px-5 py-4 hover:shadow-md transition-shadow group">
+          <div className="p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+            <FolderOpen className="w-5 h-5" />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-sm">File Storage</p>
+            <p className="text-xs text-muted-foreground">Funder agreements, signed contracts &amp; past reports</p>
+          </div>
+          <span className="text-xs text-primary font-medium group-hover:underline">Browse files →</span>
+        </div>
+      </Link>
 
       <StatsRow projects={projects} reports={reports} />
 

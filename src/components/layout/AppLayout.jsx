@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FolderOpen, FileText, Bell, DollarSign } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, FileText, Bell, DollarSign, Archive } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -8,6 +8,7 @@ const navItems = [
   { path: '/projects', label: 'Projects', icon: FolderOpen },
   { path: '/funders', label: 'Funders', icon: DollarSign },
   { path: '/reports', label: 'Reports', icon: FileText },
+  { path: '/files', label: 'Files', icon: Archive },
 ];
 
 export default function AppLayout() {
