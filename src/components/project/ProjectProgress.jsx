@@ -27,10 +27,10 @@ export default function ProjectProgress({ project }) {
         </div>
         <Progress value={progress} className="h-2 mb-4" />
         <div className="flex items-center justify-between">
-          {STAGES.map((stage, i) => {
-            const stageIdx = STATUS_ORDER.indexOf(stage.key);
-            const isDone = currentIdx > stageIdx;
-            const isCurrent = stage.key === project.status;
+           {STAGES.map((stage, i) => {
+             const stageIdx = STATUS_ORDER.indexOf(stage.key);
+             const isDone = currentIdx > stageIdx || stage.key === project.status;
+             const isCurrent = stage.key === project.status;
             return (
               <div key={stage.key} className="flex flex-col items-center gap-1">
                 {isDone ? (

@@ -73,6 +73,14 @@ export default function ProjectDetail() {
 
   const updateMutation = useMutation({
     mutationFn: async (data) => {
+      // Auto-update progress percentage based on status
+      const statusOrder = ['research', 'drafting', 'review', 'submitted', 'awarded'];
+      const statusIdx = statusOrder.indexOf(data.status);
+      if (statusIdx >= 0) {
+        const progressPercent = Math.round(((statusIdx + 1) / statusOrder.length) * 100);
+        data.progress_percentage = progressPercent;
+      }
+
       const updated = await base44.entities.Project.update(id, data);
       // Auto-file into File Storage when marked as submitted
       if (data.status === 'submitted' && project?.status !== 'submitted') {
