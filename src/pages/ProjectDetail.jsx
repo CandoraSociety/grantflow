@@ -5,7 +5,7 @@ import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, FileText, StickyNote, PenSquare, Paperclip, BarChart2, Bot, Loader2, CheckSquare } from 'lucide-react';
+import { ArrowLeft, FileText, StickyNote, PenSquare, Paperclip, BarChart2, Bot, Loader2, CheckSquare, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import ProjectProgress from '@/components/project/ProjectProgress';
@@ -15,6 +15,7 @@ import ProposalTab from '@/components/project/ProposalTab';
 import ReportsTab from '@/components/project/ReportsTab';
 import AIAssistant from '@/components/project/AIAssistant';
 import SubmissionTab from '@/components/project/SubmissionTab';
+import QuickReferenceTab from '@/components/project/QuickReferenceTab';
 
 const TABS = [
   { id: 'proposal', label: 'Proposal Builder', icon: PenSquare },
@@ -22,6 +23,7 @@ const TABS = [
   { id: 'submission', label: 'Final Submission Documents', icon: CheckSquare },
   { id: 'notes', label: 'Notes', icon: StickyNote },
   { id: 'reports', label: 'Reports', icon: BarChart2 },
+  { id: 'quick-ref', label: 'Quick Reference', icon: BookOpen },
   { id: 'ai', label: 'AI Assistant', icon: Bot },
 ];
 
@@ -62,6 +64,11 @@ export default function ProjectDetail() {
   const { data: submissionDocuments = [] } = useQuery({
     queryKey: ['submissionDocuments', id],
     queryFn: () => base44.entities.SubmissionDocument.filter({ project_id: id }, '-created_date'),
+  });
+
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
   });
 
   const updateMutation = useMutation({
@@ -183,6 +190,9 @@ export default function ProjectDetail() {
         )}
         {activeTab === 'reports' && (
           <ReportsTab projectId={id} project={project} reports={reports} />
+        )}
+        {activeTab === 'quick-ref' && (
+          <QuickReferenceTab user={user} />
         )}
         {activeTab === 'ai' && (
           <AIAssistant project={project} documents={documents} notes={notes} />

@@ -1,20 +1,48 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { CheckCircle2, Circle, Trash2, Sparkles, Loader2, Save, FileDown, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import OrgInfoPopup from './OrgInfoPopup';
 
 export default function SectionEditor({ section, projectId, project, documents, notes, selectedDocId, onSelectDoc, onToggleComplete, onDelete }) {
   const queryClient = useQueryClient();
   const [content, setContent] = useState(section.content || '');
   const [dirty, setDirty] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [showOrgPopup, setShowOrgPopup] = useState(false);
+  const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
+  const textareaRef = useRef(null);
+
+  const { data: orgInfo } = useQuery({
+    queryKey: ['orgInfo'],
+    queryFn: async () => {
+      const items = await base44.entities.OrganizationInfo.list();
+      return items[0] || {};
+    },
+  });
 
   const refDocs = documents.filter(d => d.file_url);
+
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+    setPopupPos({ x: e.clientX, y: e.clientY });
+    setShowOrgPopup(true);
+  };
+
+  const handleInsertOrgInfo = (value) => {
+    if (!textareaRef.current) return;
+    const textarea = textareaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const newContent = content.substring(0, start) + value + content.substring(end);
+    setContent(newContent);
+    setDirty(true);
+  };
 
   useEffect(() => {
     setContent(section.content || '');
@@ -140,15 +168,27 @@ Write original, compelling content for the "${section.title}" section of this pr
       {/* Editor */}
       <div className="flex-1 flex flex-col gap-2">
         <Textarea
+          ref={textareaRef}
           value={content}
           onChange={e => { setContent(e.target.value); setDirty(true); }}
+          onContextMenu={handleContextMenu}
           className="flex-1 min-h-[480px] font-body text-sm leading-relaxed resize-none"
-          placeholder={`Write your ${section.title} content here...`}
+          placeholder={`Write your ${section.title} content here... (right-click to insert org info)`}
         />
         {dirty && (
           <p className="text-xs text-muted-foreground">Unsaved changes — click Save to keep your work</p>
         )}
       </div>
+
+      {showOrgPopup && (
+        <OrgInfoPopup
+          x={popupPos.x}
+          y={popupPos.y}
+          orgInfo={orgInfo}
+          onClose={() => setShowOrgPopup(false)}
+          onInsert={handleInsertOrgInfo}
+        />
+      )}
     </div>
   );
 }

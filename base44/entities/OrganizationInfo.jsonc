@@ -1,0 +1,36 @@
+{
+  "name": "OrganizationInfo",
+  "type": "object",
+  "properties": {
+    "charitable_number": {
+      "type": "string",
+      "description": "CRA registered charitable number"
+    },
+    "corporate_number": {
+      "type": "string",
+      "description": "Corporate/incorporation number"
+    },
+    "business_number": {
+      "type": "string",
+      "description": "Business number (GST/HST)"
+    },
+    "fiscal_year_end": {
+      "type": "string",
+      "description": "Fiscal year end date (e.g., December 31)"
+    },
+    "incorporation_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of incorporation"
+    },
+    "legal_name": {
+      "type": "string",
+      "description": "Legal organization name"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about the organization"
+    }
+  },
+  "required": []
+}
