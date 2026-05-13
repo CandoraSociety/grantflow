@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,17 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+
+const PROJECT_TYPES = [
+  { value: 'grant',        label: 'Grant Application',       orgLabel: 'Funding Organization',  orgPlaceholder: 'e.g., National Science Foundation',  amountLabel: 'Requested Amount ($)' },
+  { value: 'contract',     label: 'Contract Proposal',        orgLabel: 'Contracting Entity',     orgPlaceholder: 'e.g., City of Springfield',           amountLabel: 'Contract Value ($)' },
+  { value: 'lease',        label: 'Lease / Rights Agreement', orgLabel: 'Lessor / Issuing Party',  orgPlaceholder: 'e.g., University Food Services',      amountLabel: 'Annual Lease Value ($)' },
+  { value: 'donation',     label: 'Corporate / Major Donor',  orgLabel: 'Donor / Company Name',   orgPlaceholder: 'e.g., Acme Corp Foundation',          amountLabel: 'Gift Amount ($)' },
+  { value: 'rfp',          label: 'RFP / Bid Response',       orgLabel: 'Issuing Organization',   orgPlaceholder: 'e.g., State Department of Health',    amountLabel: 'Bid Value ($)' },
+  { value: 'permit',       label: 'Permit / License',         orgLabel: 'Issuing Authority',      orgPlaceholder: 'e.g., County Planning Dept',          amountLabel: 'Fee / Bond Amount ($)' },
+  { value: 'other',        label: 'Other Submission',         orgLabel: 'Organization / Recipient', orgPlaceholder: 'Name of receiving organization',    amountLabel: 'Value ($)' },
+];
 
 export default function NewProject() {
   const navigate = useNavigate();
@@ -24,6 +34,9 @@ export default function NewProject() {
     award_amount: '',
   });
 
+  const typeConfig = PROJECT_TYPES.find(t => t.value === form.project_type) || PROJECT_TYPES[0];
+  const isGrantOrDonation = ['grant', 'donation'].includes(form.project_type);
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Project.create(data),
     onSuccess: (created) => {
@@ -34,13 +47,12 @@ export default function NewProject() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const data = {
+    createMutation.mutate({
       ...form,
       award_amount: form.award_amount ? Number(form.award_amount) : undefined,
       status: 'research',
       progress_percentage: 0,
-    };
-    createMutation.mutate(data);
+    });
   };
 
   return (
@@ -55,42 +67,69 @@ export default function NewProject() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-5">
+
+            {/* Project Type Selector */}
+            <div className="space-y-2">
+              <Label>Project Type *</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {PROJECT_TYPES.map(t => (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setForm({ ...form, project_type: t.value })}
+                    className={cn(
+                      'text-left px-3 py-2.5 rounded-lg border text-xs font-medium transition-all',
+                      form.project_type === t.value
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-card hover:border-primary/40 text-foreground'
+                    )}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Project Title */}
             <div className="space-y-2">
               <Label>Project Title *</Label>
               <Input
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="e.g., Community Health Initiative Grant"
+                placeholder={`e.g., ${typeConfig.orgPlaceholder.split('e.g., ')[1] || 'Project title'}...`}
                 required
               />
             </div>
 
+            {/* Organization fields — label changes by type */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Funder Name *</Label>
+                <Label>{typeConfig.orgLabel} *</Label>
                 <Input
                   value={form.funder_name}
                   onChange={(e) => setForm({ ...form, funder_name: e.target.value })}
-                  placeholder="e.g., National Science Foundation"
+                  placeholder={typeConfig.orgPlaceholder}
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Funder Type</Label>
-                <Select value={form.funder_type} onValueChange={(v) => setForm({ ...form, funder_type: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="federal">Federal</SelectItem>
-                    <SelectItem value="state">State</SelectItem>
-                    <SelectItem value="local">Local</SelectItem>
-                    <SelectItem value="foundation">Foundation</SelectItem>
-                    <SelectItem value="corporate">Corporate</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+
+              {/* Org type — only show for grant/donation/contract */}
+              {isGrantOrDonation && (
+                <div className="space-y-2">
+                  <Label>Organization Type</Label>
+                  <Select value={form.funder_type} onValueChange={(v) => setForm({ ...form, funder_type: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="federal">Federal</SelectItem>
+                      <SelectItem value="state">State</SelectItem>
+                      <SelectItem value="local">Local Government</SelectItem>
+                      <SelectItem value="foundation">Foundation</SelectItem>
+                      <SelectItem value="corporate">Corporate</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -103,7 +142,7 @@ export default function NewProject() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Requested Amount ($)</Label>
+                <Label>{typeConfig.amountLabel}</Label>
                 <Input
                   type="number"
                   value={form.award_amount}

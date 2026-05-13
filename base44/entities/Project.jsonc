@@ -6,9 +6,23 @@
       "type": "string",
       "description": "Project/proposal title"
     },
+    "project_type": {
+      "type": "string",
+      "enum": [
+        "grant",
+        "contract",
+        "lease",
+        "donation",
+        "rfp",
+        "permit",
+        "other"
+      ],
+      "default": "grant",
+      "description": "Type of submission"
+    },
     "funder_name": {
       "type": "string",
-      "description": "Name of the funding source"
+      "description": "Name of the receiving/issuing organization"
     },
     "funder_type": {
       "type": "string",
@@ -20,7 +34,7 @@
         "corporate",
         "other"
       ],
-      "description": "Type of funding source"
+      "description": "Type of organization (for grants/donations)"
     },
     "status": {
       "type": "string",
@@ -39,30 +53,26 @@
     "submission_deadline": {
       "type": "string",
       "format": "date-time",
-      "description": "Deadline for proposal submission"
+      "description": "Deadline for submission"
     },
     "award_amount": {
       "type": "number",
-      "description": "Requested or awarded amount"
+      "description": "Requested, awarded, or contract value"
     },
     "project_period_start": {
       "type": "string",
-      "format": "date",
-      "description": "Project start date"
+      "format": "date"
     },
     "project_period_end": {
       "type": "string",
-      "format": "date",
-      "description": "Project end date"
+      "format": "date"
     },
     "description": {
-      "type": "string",
-      "description": "Brief project description"
+      "type": "string"
     },
     "progress_percentage": {
       "type": "number",
-      "default": 0,
-      "description": "Auto-calculated progress percentage"
+      "default": 0
     },
     "proposal_approach": {
       "type": "string",
@@ -70,15 +80,13 @@
         "scratch",
         "template_upload",
         "ai_generated"
-      ],
-      "description": "How the proposal is being built"
+      ]
     },
     "tags": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Tags for categorization"
+      }
     }
   },
   "required": [
