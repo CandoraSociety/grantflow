@@ -4,16 +4,26 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckCircle2, Circle, Trash2, Sparkles, Loader2, Save, FileDown } from 'lucide-react';
+import { CheckCircle2, Circle, Trash2, Sparkles, Loader2, Save, FileDown, FileText, ChevronDown, X, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function SectionEditor({ section, projectId, project, documents, notes, onToggleComplete, onDelete }) {
   const queryClient = useQueryClient();
   const [content, setContent] = useState(section.content || '');
   const [dirty, setDirty] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [selectedDocId, setSelectedDocId] = useState(null);
+
+  const refDocs = documents.filter(d => d.file_url);
+  const selectedDoc = refDocs.find(d => d.id === selectedDocId) || null;
+
+  const isViewableInline = (doc) => {
+    const ext = (doc.file_type || '').toLowerCase();
+    return ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext);
+  };
 
   useEffect(() => {
     setContent(section.content || '');
@@ -84,7 +94,8 @@ Write original, compelling content for the "${section.title}" section of this pr
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-3">
           <button onClick={onToggleComplete} className="flex items-center gap-2">
             {section.is_complete
@@ -97,7 +108,27 @@ Write original, compelling content for the "${section.title}" section of this pr
             <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium">Complete</span>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Reference doc picker */}
+          {refDocs.length > 0 && (
+            <Select
+              value={selectedDocId || ''}
+              onValueChange={v => setSelectedDocId(v === '' ? null : v)}
+            >
+              <SelectTrigger className="h-8 text-xs gap-1.5 pr-2 w-44 border-dashed">
+                <FileText className="w-3.5 h-3.5 text-muted-foreground" />
+                <SelectValue placeholder="View a document…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>— None —</SelectItem>
+                {refDocs.map(d => (
+                  <SelectItem key={d.id} value={d.id}>
+                    <span className="truncate max-w-[180px] block">{d.name}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Button variant="outline" size="sm" className="gap-2" onClick={handleExportWord} disabled={!content}>
             <FileDown className="w-3.5 h-3.5" />
             Word
@@ -116,16 +147,65 @@ Write original, compelling content for the "${section.title}" section of this pr
         </div>
       </div>
 
-      <Textarea
-        value={content}
-        onChange={e => { setContent(e.target.value); setDirty(true); }}
-        className="min-h-[400px] font-body text-sm leading-relaxed resize-y"
-        placeholder={`Write your ${section.title} content here...`}
-      />
+      {/* Editor + document panel side by side */}
+      <div className={cn('flex gap-4', selectedDoc ? 'flex-row items-stretch' : '')}>
+        <div className={cn('flex flex-col gap-2', selectedDoc ? 'w-1/2' : 'w-full')}>
+          <Textarea
+            value={content}
+            onChange={e => { setContent(e.target.value); setDirty(true); }}
+            className="min-h-[480px] font-body text-sm leading-relaxed resize-y h-full"
+            placeholder={`Write your ${section.title} content here...`}
+          />
+          {dirty && (
+            <p className="text-xs text-muted-foreground">Unsaved changes — click Save to keep your work</p>
+          )}
+        </div>
 
-      {dirty && (
-        <p className="text-xs text-muted-foreground">Unsaved changes — click Save to keep your work</p>
-      )}
+        {selectedDoc && (
+          <div className="w-1/2 flex flex-col border border-border rounded-lg overflow-hidden">
+            {/* Doc panel header */}
+            <div className="flex items-center justify-between px-3 py-2 bg-secondary border-b border-border flex-shrink-0">
+              <p className="text-xs font-medium truncate flex-1">{selectedDoc.name}</p>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <a href={selectedDoc.file_url} target="_blank" rel="noopener noreferrer" title="Open in new tab">
+                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <ExternalLink className="w-3 h-3" />
+                  </Button>
+                </a>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setSelectedDocId(null)}>
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Doc panel content */}
+            <div className="flex-1 overflow-auto" style={{ minHeight: '480px' }}>
+              {isViewableInline(selectedDoc) ? (
+                <iframe
+                  src={selectedDoc.file_url}
+                  title={selectedDoc.name}
+                  className="w-full h-full min-h-[480px] border-0"
+                />
+              ) : selectedDoc.extracted_text ? (
+                <div className="p-4 text-xs font-body leading-relaxed whitespace-pre-wrap text-foreground">
+                  {selectedDoc.extracted_text}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full gap-3 p-6 text-center">
+                  <FileText className="w-10 h-10 text-muted-foreground/40" />
+                  <p className="text-sm text-muted-foreground">This file type can't be previewed inline.</p>
+                  <a href={selectedDoc.file_url} target="_blank" rel="noopener noreferrer">
+                    <Button size="sm" variant="outline" className="gap-2">
+                      <ExternalLink className="w-3.5 h-3.5" /> Open File
+                    </Button>
+                  </a>
+                  <p className="text-xs text-muted-foreground">You can also use the ✨ AI Extract button in Documents to extract its text.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
