@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Circle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CheckCircle2, Circle, Clock } from 'lucide-react';
+import ExpectedNotificationModal from './ExpectedNotificationModal';
 
 const STAGES = [
   { key: 'research', label: 'Research' },
@@ -17,6 +19,7 @@ const STATUS_ORDER = ['research', 'drafting', 'review', 'submitted', 'awarded', 
 export default function ProjectProgress({ project }) {
   const currentIdx = STATUS_ORDER.indexOf(project.status);
   const progress = project.progress_percentage || 0;
+  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <Card className="border-none shadow-sm">
@@ -44,8 +47,43 @@ export default function ProjectProgress({ project }) {
               </div>
             );
           })}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+          </div>
+
+          {project.status === 'submitted' && (
+          <div className="mt-4 pt-4 border-t border-border">
+           {project.expected_notification_date ? (
+             <Button
+               variant="ghost"
+               size="sm"
+               className="w-full justify-start text-left h-auto py-2"
+               onClick={() => setModalOpen(true)}
+             >
+               <Clock className="w-4 h-4 mr-2 text-accent flex-shrink-0" />
+               <div className="flex flex-col items-start">
+                 <span className="text-xs text-muted-foreground">Expected notification</span>
+                 <span className="text-sm font-medium">{project.expected_notification_date}</span>
+               </div>
+             </Button>
+           ) : (
+             <Button
+               variant="outline"
+               size="sm"
+               className="w-full"
+               onClick={() => setModalOpen(true)}
+             >
+               <Clock className="w-4 h-4 mr-2" />
+               Enter expected notification date
+             </Button>
+           )}
+          </div>
+          )}
+
+          <ExpectedNotificationModal
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          project={project}
+          />
+          </CardContent>
+          </Card>
+          );
+          }

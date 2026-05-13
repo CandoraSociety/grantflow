@@ -66,6 +66,14 @@
       "format": "date-time",
       "description": "Deadline for submission"
     },
+    "expected_notification_date": {
+      "type": "string",
+      "description": "Expected date/time period for notification (free-form text)"
+    },
+    "expected_notification_notes": {
+      "type": "string",
+      "description": "Notes about the expected notification date (synced to project notes)"
+    },
     "award_amount": {
       "type": "number",
       "description": "Requested, awarded, or contract value"
