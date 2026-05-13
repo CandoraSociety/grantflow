@@ -58,8 +58,30 @@ export default function ProjectDetail() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data) => base44.entities.Project.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project', id] }),
+    mutationFn: async (data) => {
+      const updated = await base44.entities.Project.update(id, data);
+      // Auto-file into File Storage when marked as submitted
+      if (data.status === 'submitted' && project?.status !== 'submitted') {
+        const alreadyFiled = await base44.entities.ProjectDocument.filter({
+          project_id: id,
+          category: 'submitted_proposal',
+        });
+        if (alreadyFiled.length === 0) {
+          await base44.entities.ProjectDocument.create({
+            project_id: id,
+            name: `${project.title} — Submitted Proposal`,
+            category: 'submitted_proposal',
+            file_url: 'auto-filed',
+            notes: `Auto-filed on ${new Date().toLocaleDateString()} when project status changed to submitted.`,
+          });
+        }
+      }
+      return updated;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project', id] });
+      queryClient.invalidateQueries({ queryKey: ['project-documents'] });
+    },
   });
 
   const setTab = (tab) => setSearchParams({ tab });

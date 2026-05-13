@@ -22,6 +22,7 @@
         "organizational_docs",
         "reporting_template",
         "submitted_report",
+        "submitted_proposal",
         "other"
       ],
       "description": "Document category"

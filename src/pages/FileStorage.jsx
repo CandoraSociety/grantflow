@@ -17,11 +17,12 @@ const CATEGORY_LABELS = {
   organizational_docs: 'Org Docs',
   reporting_template: 'Reporting Template',
   submitted_report: 'Submitted Report',
+  submitted_proposal: 'Submitted Proposal',
   other: 'Other',
 };
 
 const AGREEMENT_CATEGORIES = ['funder_guidelines', 'organizational_docs', 'support_letter', 'audit_statement', 'insurance_proof'];
-const REPORT_CATEGORIES = ['submitted_report', 'reporting_template'];
+const REPORT_CATEGORIES = ['submitted_report', 'reporting_template', 'submitted_proposal'];
 
 const CATEGORY_COLORS = {
   funder_guidelines: 'bg-amber-100 text-amber-700',
@@ -33,6 +34,7 @@ const CATEGORY_COLORS = {
   organizational_docs: 'bg-cyan-100 text-cyan-700',
   reporting_template: 'bg-indigo-100 text-indigo-700',
   submitted_report: 'bg-teal-100 text-teal-700',
+  submitted_proposal: 'bg-blue-100 text-blue-700',
   other: 'bg-gray-100 text-gray-700',
 };
 
