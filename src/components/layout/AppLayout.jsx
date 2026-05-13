@@ -1,11 +1,12 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FolderOpen, FileText, Bell, Settings } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, FileText, Bell, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/projects', label: 'Projects', icon: FolderOpen },
+  { path: '/funders', label: 'Funders', icon: DollarSign },
   { path: '/reports', label: 'Reports', icon: FileText },
 ];
 
@@ -14,7 +15,6 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Navigation */}
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -27,8 +27,8 @@ export default function AppLayout() {
 
             <nav className="hidden md:flex items-center gap-1">
               {navItems.map((item) => {
-                const isActive = item.path === '/' 
-                  ? location.pathname === '/' 
+                const isActive = item.path === '/'
+                  ? location.pathname === '/'
                   : location.pathname.startsWith(item.path);
                 return (
                   <Link

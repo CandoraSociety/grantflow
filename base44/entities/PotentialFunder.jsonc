@@ -1,0 +1,128 @@
+{
+  "name": "PotentialFunder",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Funder or donor name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "federal",
+        "state",
+        "local",
+        "foundation",
+        "corporate",
+        "individual",
+        "other"
+      ],
+      "description": "Type of funder"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "grant",
+        "corporate_donation",
+        "major_gift",
+        "sponsorship",
+        "in_kind",
+        "other"
+      ],
+      "description": "Funding category"
+    },
+    "website": {
+      "type": "string",
+      "description": "Funder website URL"
+    },
+    "contact_name": {
+      "type": "string",
+      "description": "Primary contact person"
+    },
+    "contact_email": {
+      "type": "string",
+      "description": "Contact email address"
+    },
+    "contact_phone": {
+      "type": "string"
+    },
+    "typical_award_min": {
+      "type": "number",
+      "description": "Minimum typical award amount"
+    },
+    "typical_award_max": {
+      "type": "number",
+      "description": "Maximum typical award amount"
+    },
+    "focus_areas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Program focus areas (e.g. education, health, environment)"
+    },
+    "eligibility_notes": {
+      "type": "string",
+      "description": "Notes on eligibility requirements"
+    },
+    "application_cycle": {
+      "type": "string",
+      "enum": [
+        "rolling",
+        "annual",
+        "biannual",
+        "quarterly",
+        "unknown"
+      ],
+      "description": "When they accept applications"
+    },
+    "next_deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Next known application deadline"
+    },
+    "pipeline_status": {
+      "type": "string",
+      "enum": [
+        "prospect",
+        "researching",
+        "relationship_building",
+        "ready_to_apply",
+        "applied",
+        "awarded",
+        "declined",
+        "not_a_fit"
+      ],
+      "default": "prospect",
+      "description": "Where this funder is in the pipeline"
+    },
+    "relationship_score": {
+      "type": "number",
+      "description": "1-5 relationship strength score"
+    },
+    "fit_score": {
+      "type": "number",
+      "description": "1-5 organizational fit score"
+    },
+    "notes": {
+      "type": "string",
+      "description": "General notes about this funder"
+    },
+    "source": {
+      "type": "string",
+      "description": "How this funder was discovered"
+    },
+    "last_contacted": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of last contact"
+    },
+    "linked_project_id": {
+      "type": "string",
+      "description": "Linked active project ID if application started"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
