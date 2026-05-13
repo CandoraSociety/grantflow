@@ -132,7 +132,7 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
   return (
     <div className="flex gap-6 h-full">
       {/* Sidebar - Section Navigator */}
-      <div className="w-64 flex-shrink-0 space-y-3">
+      <div className="w-52 flex-shrink-0 space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-muted-foreground">{completedCount}/{sections.length} complete</span>
           <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs" onClick={() => setShowDocModal(true)} disabled={sections.length === 0}>
