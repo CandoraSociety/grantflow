@@ -267,8 +267,8 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
       </div>
 
       {/* Main Content Area */}
-      <div className={cn('flex gap-4 min-w-0', docPanelDoc ? 'flex-1' : 'flex-1')}>
-        <div className={cn('flex flex-col min-w-0', docPanelDoc ? 'w-1/2' : 'w-full')}>
+      <div className="flex gap-4 flex-1 min-w-0 overflow-hidden">
+        <div className={cn('flex flex-col min-w-0', docPanelDoc ? 'flex-1' : 'w-full')}>
         {activeS ? (
           <SectionEditor
             section={activeS}
@@ -296,7 +296,7 @@ Return a JSON array of sections: [{"title": "...", "section_type": "narrative|bu
 
         {/* Document Viewer Panel */}
         {docPanelDoc && (
-          <div className="w-1/2 flex flex-col border border-border rounded-lg overflow-hidden flex-shrink-0">
+          <div className="flex-1 flex flex-col border border-border rounded-lg overflow-hidden min-w-0">
             <div className="flex items-center justify-between px-3 py-2 bg-secondary border-b border-border flex-shrink-0">
               <p className="text-xs font-medium truncate flex-1">{docPanelDoc.name}</p>
               <div className="flex items-center gap-1 flex-shrink-0">
