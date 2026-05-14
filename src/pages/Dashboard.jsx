@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Plus, FolderOpen, FileText, FileArchive } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useBranding } from '@/hooks/useBranding';
 import StatsRow from '@/components/dashboard/StatsRow';
 import ProjectsList from '@/components/dashboard/ProjectsList';
 import ReportCalendar from '@/components/dashboard/ReportCalendar';
@@ -53,6 +54,8 @@ function buildAllDeadlines(projects, reports, milestones) {
 }
 
 export default function Dashboard() {
+  useBranding();
+  
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-updated_date'),

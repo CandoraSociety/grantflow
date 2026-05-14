@@ -42,6 +42,8 @@
     --sidebar-accent-foreground: 220 14% 93%;
     --sidebar-border: 224 25% 20%;
     --sidebar-ring: 234 62% 50%;
+    --hub-primary: var(--primary);
+    --hub-secondary: var(--secondary);
   }
 
   .dark {
@@ -77,6 +79,8 @@
     --sidebar-accent-foreground: 220 14% 93%;
     --sidebar-border: 224 25% 14%;
     --sidebar-ring: 234 62% 60%;
+    --hub-primary: var(--primary);
+    --hub-secondary: var(--secondary);
   }
 }
 
