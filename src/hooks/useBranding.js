@@ -34,6 +34,7 @@ export function useBranding() {
         if (secondary_color) {
           const hsl = hexToHsl(secondary_color);
           root.style.setProperty('--accent', hsl);
+          root.style.setProperty('--ring', hsl);
         }
         if (background_color) {
           const hsl = hexToHsl(background_color);
