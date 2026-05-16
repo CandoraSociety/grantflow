@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppLayout from '@/components/layout/AppLayout';
+import { useBranding } from '@/hooks/useBranding';
 import Dashboard from '@/pages/Dashboard';
 import Projects from '@/pages/Projects';
 import NewProject from '@/pages/NewProject';
@@ -17,6 +18,7 @@ import Submissions from '@/pages/Submissions';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  useBranding();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
