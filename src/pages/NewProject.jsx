@@ -58,19 +58,19 @@ export default function NewProject() {
   return (
     <div className="max-w-2xl mx-auto">
       <Link to="/projects" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
-        <ArrowLeft className="w-4 h-4" /> Back to Projects
+        <ArrowLeft className="w-4 h-4" /> Back to Proposals
       </Link>
 
       <Card className="border-none shadow-sm">
         <CardHeader>
-          <CardTitle className="font-heading text-xl">Create New Project</CardTitle>
+          <CardTitle className="font-heading text-xl">Create New Proposal</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-5">
 
             {/* Project Type Selector */}
             <div className="space-y-2">
-              <Label>Project Type *</Label>
+              <Label>Proposal Type *</Label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {PROJECT_TYPES.map(t => (
                   <button
@@ -92,11 +92,11 @@ export default function NewProject() {
 
             {/* Project Title */}
             <div className="space-y-2">
-              <Label>Project Title *</Label>
+              <Label>Proposal Title *</Label>
               <Input
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder={`e.g., ${typeConfig.orgPlaceholder.split('e.g., ')[1] || 'Project title'}...`}
+                placeholder={`e.g., ${typeConfig.orgPlaceholder.split('e.g., ')[1] || 'Proposal title'}...`}
                 required
               />
             </div>
@@ -157,7 +157,7 @@ export default function NewProject() {
               <Textarea
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Brief description of the project..."
+                placeholder="Brief description of the proposal..."
                 rows={4}
               />
             </div>
@@ -166,7 +166,7 @@ export default function NewProject() {
               <Button type="button" variant="outline" onClick={() => navigate('/projects')}>Cancel</Button>
               <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Create Project
+                Create Proposal
               </Button>
             </div>
           </form>

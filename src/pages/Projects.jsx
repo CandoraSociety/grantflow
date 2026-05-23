@@ -83,7 +83,7 @@ export default function Projects() {
           </Button>
           <Link to="/projects/new">
             <Button className="gap-2 shadow-sm">
-              <Plus className="w-4 h-4" /> New Project
+              <Plus className="w-4 h-4" /> New Proposal
             </Button>
           </Link>
         </div>

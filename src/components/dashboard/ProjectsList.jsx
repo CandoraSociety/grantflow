@@ -22,7 +22,7 @@ export default function ProjectsList({ projects, limit, onOrganize }) {
   if (displayed.length === 0) {
     return (
       <Card className="p-8 text-center border-none shadow-sm">
-        <p className="text-muted-foreground">No projects yet. Create your first project to get started.</p>
+        <p className="text-muted-foreground">No proposals yet. Create your first proposal to get started.</p>
       </Card>
     );
   }
