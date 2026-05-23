@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Loader2, CalendarDays, Type } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import SetReminderPopover from '@/components/project/SetReminderPopover';
 
 const PROJECT_TYPES = [
   { value: 'grant',        label: 'Grant Application',       orgLabel: 'Funding Organization',  orgPlaceholder: 'e.g., National Science Foundation',  amountLabel: 'Requested Amount ($)' },
@@ -167,6 +168,11 @@ export default function NewProject() {
                     onChange={(e) => setForm({ ...form, open_for_submissions: e.target.value })}
                   />
                 )}
+                <SetReminderPopover
+                  reminderType="open_for_submissions"
+                  projectTitle={form.title}
+                  funderName={form.funder_name}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Submission Deadline</Label>
@@ -174,6 +180,11 @@ export default function NewProject() {
                   type="datetime-local"
                   value={form.submission_deadline}
                   onChange={(e) => setForm({ ...form, submission_deadline: e.target.value })}
+                />
+                <SetReminderPopover
+                  reminderType="submission_deadline"
+                  projectTitle={form.title}
+                  funderName={form.funder_name}
                 />
               </div>
             </div>

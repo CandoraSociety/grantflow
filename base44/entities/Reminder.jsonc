@@ -1,0 +1,50 @@
+{
+  "name": "Reminder",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Associated project ID"
+    },
+    "reminder_type": {
+      "type": "string",
+      "enum": [
+        "open_for_submissions",
+        "submission_deadline"
+      ],
+      "description": "Which date this reminder is for"
+    },
+    "remind_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When to send the reminder"
+    },
+    "recipient_email": {
+      "type": "string",
+      "description": "Email address to send the reminder to"
+    },
+    "project_title": {
+      "type": "string",
+      "description": "Cached project title for the email"
+    },
+    "funder_name": {
+      "type": "string",
+      "description": "Cached funder name for the email"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "sent",
+        "cancelled"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "project_id",
+    "reminder_type",
+    "remind_at",
+    "recipient_email"
+  ]
+}
