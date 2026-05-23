@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, FolderOpen, Tag, X, ArrowUpDown, Layers } from 'lucide-react';
+import { Plus, Search, FolderOpen, Tag, X, ArrowUpDown, Layers, CheckCircle2, XCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -132,8 +132,8 @@ export default function Projects() {
               <TabsTrigger value="research">Research</TabsTrigger>
               <TabsTrigger value="drafting">Drafting</TabsTrigger>
               <TabsTrigger value="submitted">Submitted</TabsTrigger>
-              <TabsTrigger value="awarded">Awarded</TabsTrigger>
-              <TabsTrigger value="declined">Declined</TabsTrigger>
+              <TabsTrigger value="awarded" className="gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" />Awarded</TabsTrigger>
+              <TabsTrigger value="declined" className="gap-1"><XCircle className="w-3.5 h-3.5 text-red-500" />Declined</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
