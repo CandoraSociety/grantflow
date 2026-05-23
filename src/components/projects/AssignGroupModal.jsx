@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Check, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AssignGroupModal({ open, onClose, project }) {
   const queryClient = useQueryClient();
@@ -23,9 +24,12 @@ export default function AssignGroupModal({ open, onClose, project }) {
     },
   });
 
-  const handleGroupSelect = (groupId) => {
-    const newGroupId = project.group_id === groupId ? null : groupId;
-    updateMutation.mutate({ group_id: newGroupId });
+  const handleGroupSelect = (groupId, groupName) => {
+    const removing = project.group_id === groupId;
+    updateMutation.mutate(
+      { group_id: removing ? null : groupId },
+      { onSuccess: () => toast.success(removing ? 'Removed from group' : `Added to "${groupName}"`) }
+    );
   };
 
   const handleAddTag = () => {
@@ -33,7 +37,10 @@ export default function AssignGroupModal({ open, onClose, project }) {
     if (!tag) return;
     const existing = project.tags || [];
     if (!existing.includes(tag)) {
-      updateMutation.mutate({ tags: [...existing, tag] });
+      updateMutation.mutate(
+        { tags: [...existing, tag] },
+        { onSuccess: () => toast.success(`Tag "${tag}" added`) }
+      );
     }
     setTagInput('');
   };
@@ -63,7 +70,7 @@ export default function AssignGroupModal({ open, onClose, project }) {
               {groups.map(g => (
                 <button
                   key={g.id}
-                  onClick={() => handleGroupSelect(g.id)}
+                  onClick={() => handleGroupSelect(g.id, g.name)}
                   className={cn(
                     'w-full flex items-center gap-3 p-2.5 rounded-lg border text-left transition-all',
                     project.group_id === g.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'
