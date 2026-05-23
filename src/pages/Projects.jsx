@@ -55,6 +55,7 @@ export default function Projects() {
             <TabsTrigger value="drafting">Drafting</TabsTrigger>
             <TabsTrigger value="submitted">Submitted</TabsTrigger>
             <TabsTrigger value="awarded">Awarded</TabsTrigger>
+            <TabsTrigger value="declined">Declined</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
