@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, FolderOpen, Tag, X } from 'lucide-react';
+import { Plus, Search, FolderOpen, Tag, X, ArrowUpDown } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProjectsList from '@/components/dashboard/ProjectsList';
@@ -16,6 +17,7 @@ export default function Projects() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [groupFilter, setGroupFilter] = useState(null);
   const [tagFilter, setTagFilter] = useState(null);
+  const [sortBy, setSortBy] = useState('updated_desc');
   const [showGroupManager, setShowGroupManager] = useState(false);
   const [assigningProject, setAssigningProject] = useState(null);
 
@@ -32,13 +34,29 @@ export default function Projects() {
   // Collect all unique tags
   const allTags = [...new Set(projects.flatMap(p => p.tags || []))].sort();
 
-  const filtered = projects.filter(p => {
+  const sortProjects = (list) => {
+    const sorted = [...list];
+    switch (sortBy) {
+      case 'updated_desc': return sorted.sort((a, b) => new Date(b.updated_date) - new Date(a.updated_date));
+      case 'updated_asc': return sorted.sort((a, b) => new Date(a.updated_date) - new Date(b.updated_date));
+      case 'created_desc': return sorted.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+      case 'created_asc': return sorted.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+      case 'alpha_asc': return sorted.sort((a, b) => a.title.localeCompare(b.title));
+      case 'alpha_desc': return sorted.sort((a, b) => b.title.localeCompare(a.title));
+      case 'deadline_asc': return sorted.sort((a, b) => new Date(a.submission_deadline || '9999') - new Date(b.submission_deadline || '9999'));
+      case 'amount_desc': return sorted.sort((a, b) => (b.award_amount || 0) - (a.award_amount || 0));
+      case 'group': return sorted.sort((a, b) => (a.group_id || 'zzz').localeCompare(b.group_id || 'zzz'));
+      default: return sorted;
+    }
+  };
+
+  const filtered = sortProjects(projects.filter(p => {
     const matchesSearch = !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.funder_name?.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
     const matchesGroup = !groupFilter || p.group_id === groupFilter;
     const matchesTag = !tagFilter || (p.tags || []).includes(tagFilter);
     return matchesSearch && matchesStatus && matchesGroup && matchesTag;
-  });
+  }));
 
   // Group projects by group_id when a group filter is not active
   const groupedView = !groupFilter && !tagFilter && !search && statusFilter === 'all';
@@ -85,6 +103,25 @@ export default function Projects() {
               className="pl-9"
             />
           </div>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-52 gap-2 bg-card">
+              <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="updated_desc">Recently Updated</SelectItem>
+              <SelectItem value="updated_asc">Oldest Updated</SelectItem>
+              <SelectItem value="created_desc">Newest Created</SelectItem>
+              <SelectItem value="created_asc">Oldest Created</SelectItem>
+              <SelectItem value="alpha_asc">A → Z</SelectItem>
+              <SelectItem value="alpha_desc">Z → A</SelectItem>
+              <SelectItem value="deadline_asc">Deadline (Soonest)</SelectItem>
+              <SelectItem value="amount_desc">Amount (Highest)</SelectItem>
+              <SelectItem value="group">By Group</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-wrap gap-2">
           <Tabs value={statusFilter} onValueChange={setStatusFilter}>
             <TabsList className="bg-card">
               <TabsTrigger value="all">All</TabsTrigger>
