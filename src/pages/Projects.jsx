@@ -3,25 +3,56 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Search, FolderOpen, Tag, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProjectsList from '@/components/dashboard/ProjectsList';
+import GroupManagerModal from '@/components/projects/GroupManagerModal';
+import AssignGroupModal from '@/components/projects/AssignGroupModal';
 
 export default function Projects() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [groupFilter, setGroupFilter] = useState(null);
+  const [tagFilter, setTagFilter] = useState(null);
+  const [showGroupManager, setShowGroupManager] = useState(false);
+  const [assigningProject, setAssigningProject] = useState(null);
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: () => base44.entities.Project.list('-updated_date'),
   });
 
-  const filtered = projects.filter(p => {
-    const matchesSearch = !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.funder_name.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
-    return matchesSearch && matchesStatus;
+  const { data: groups = [] } = useQuery({
+    queryKey: ['projectGroups'],
+    queryFn: () => base44.entities.ProjectGroup.list('name'),
   });
+
+  // Collect all unique tags
+  const allTags = [...new Set(projects.flatMap(p => p.tags || []))].sort();
+
+  const filtered = projects.filter(p => {
+    const matchesSearch = !search || p.title.toLowerCase().includes(search.toLowerCase()) || p.funder_name?.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
+    const matchesGroup = !groupFilter || p.group_id === groupFilter;
+    const matchesTag = !tagFilter || (p.tags || []).includes(tagFilter);
+    return matchesSearch && matchesStatus && matchesGroup && matchesTag;
+  });
+
+  // Group projects by group_id when a group filter is not active
+  const groupedView = !groupFilter && !tagFilter && !search && statusFilter === 'all';
+
+  const getGroupedProjects = () => {
+    const result = [];
+    const ungrouped = filtered.filter(p => !p.group_id);
+    const grouped = groups.map(g => ({
+      group: g,
+      projects: filtered.filter(p => p.group_id === g.id),
+    })).filter(g => g.projects.length > 0);
+
+    return { grouped, ungrouped };
+  };
 
   return (
     <div className="space-y-6">
@@ -30,37 +61,107 @@ export default function Projects() {
           <h1 className="text-2xl sm:text-3xl font-heading font-bold tracking-tight">Projects</h1>
           <p className="text-muted-foreground text-sm mt-1">Manage all your grant proposals and submissions</p>
         </div>
-        <Link to="/projects/new">
-          <Button className="gap-2 shadow-sm">
-            <Plus className="w-4 h-4" />
-            New Project
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => setShowGroupManager(true)}>
+            <FolderOpen className="w-4 h-4" /> Manage Groups
           </Button>
-        </Link>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search projects..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+          <Link to="/projects/new">
+            <Button className="gap-2 shadow-sm">
+              <Plus className="w-4 h-4" /> New Project
+            </Button>
+          </Link>
         </div>
-        <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-          <TabsList className="bg-card">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="research">Research</TabsTrigger>
-            <TabsTrigger value="drafting">Drafting</TabsTrigger>
-            <TabsTrigger value="submitted">Submitted</TabsTrigger>
-            <TabsTrigger value="awarded">Awarded</TabsTrigger>
-            <TabsTrigger value="declined">Declined</TabsTrigger>
-          </TabsList>
-        </Tabs>
       </div>
 
-      <ProjectsList projects={filtered} />
+      {/* Filters */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search projects..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+            <TabsList className="bg-card">
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="research">Research</TabsTrigger>
+              <TabsTrigger value="drafting">Drafting</TabsTrigger>
+              <TabsTrigger value="submitted">Submitted</TabsTrigger>
+              <TabsTrigger value="awarded">Awarded</TabsTrigger>
+              <TabsTrigger value="declined">Declined</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        {/* Group & Tag filter chips */}
+        <div className="flex flex-wrap gap-2 items-center">
+          {groups.map(g => (
+            <button
+              key={g.id}
+              onClick={() => setGroupFilter(groupFilter === g.id ? null : g.id)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all ${groupFilter === g.id ? 'text-white border-transparent' : 'bg-card border-border text-muted-foreground hover:text-foreground'}`}
+              style={groupFilter === g.id ? { backgroundColor: g.color || '#6366f1', borderColor: g.color || '#6366f1' } : {}}
+            >
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: g.color || '#6366f1' }} />
+              {g.name}
+              {groupFilter === g.id && <X className="w-3 h-3" />}
+            </button>
+          ))}
+          {allTags.map(tag => (
+            <button
+              key={tag}
+              onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all ${tagFilter === tag ? 'bg-primary text-primary-foreground border-primary' : 'bg-card border-border text-muted-foreground hover:text-foreground'}`}
+            >
+              <Tag className="w-3 h-3" />
+              {tag}
+              {tagFilter === tag && <X className="w-3 h-3" />}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Projects list — grouped or flat */}
+      {groupedView && groups.length > 0 ? (
+        <div className="space-y-8">
+          {getGroupedProjects().grouped.map(({ group, projects: gProjects }) => (
+            <div key={group.id}>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: group.color || '#6366f1' }} />
+                <h2 className="font-heading font-semibold text-base">{group.name}</h2>
+                {group.description && <span className="text-xs text-muted-foreground">— {group.description}</span>}
+                <Badge variant="secondary" className="text-xs">{gProjects.length}</Badge>
+              </div>
+              <ProjectsList projects={gProjects} onOrganize={setAssigningProject} />
+            </div>
+          ))}
+          {getGroupedProjects().ungrouped.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-3 h-3 rounded-full bg-muted-foreground/40" />
+                <h2 className="font-heading font-semibold text-base text-muted-foreground">Ungrouped</h2>
+                <Badge variant="secondary" className="text-xs">{getGroupedProjects().ungrouped.length}</Badge>
+              </div>
+              <ProjectsList projects={getGroupedProjects().ungrouped} onOrganize={setAssigningProject} />
+            </div>
+          )}
+        </div>
+      ) : (
+        <ProjectsList projects={filtered} onOrganize={setAssigningProject} />
+      )}
+
+      <GroupManagerModal open={showGroupManager} onClose={() => setShowGroupManager(false)} />
+      {assigningProject && (
+        <AssignGroupModal
+          open={!!assigningProject}
+          onClose={() => setAssigningProject(null)}
+          project={assigningProject}
+        />
+      )}
     </div>
   );
 }

@@ -1,0 +1,21 @@
+{
+  "name": "ProjectGroup",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Group name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of what this group represents"
+    },
+    "color": {
+      "type": "string",
+      "description": "Color hex code for visual identification"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
