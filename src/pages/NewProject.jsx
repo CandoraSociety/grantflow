@@ -36,6 +36,7 @@ export default function NewProject() {
     award_amount: '',
   });
   const [openDateMode, setOpenDateMode] = useState('text'); // 'date' or 'text'
+  const [deadlineDateMode, setDeadlineDateMode] = useState('date'); // 'date' or 'text'
 
   const typeConfig = PROJECT_TYPES.find(t => t.value === form.project_type) || PROJECT_TYPES[0];
   const isGrantOrDonation = ['grant', 'donation'].includes(form.project_type);
@@ -176,11 +177,35 @@ export default function NewProject() {
               </div>
               <div className="space-y-2">
                 <Label>Submission Deadline</Label>
-                <Input
-                  type="datetime-local"
-                  value={form.submission_deadline}
-                  onChange={(e) => setForm({ ...form, submission_deadline: e.target.value })}
-                />
+                <div className="flex gap-1 mb-1">
+                  <button
+                    type="button"
+                    onClick={() => { setDeadlineDateMode('text'); setForm({ ...form, submission_deadline: '' }); }}
+                    className={cn('flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border transition-all', deadlineDateMode === 'text' ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground hover:text-foreground')}
+                  >
+                    <Type className="w-3 h-3" /> Text
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setDeadlineDateMode('date'); setForm({ ...form, submission_deadline: '' }); }}
+                    className={cn('flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border transition-all', deadlineDateMode === 'date' ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground hover:text-foreground')}
+                  >
+                    <CalendarDays className="w-3 h-3" /> Date
+                  </button>
+                </div>
+                {deadlineDateMode === 'text' ? (
+                  <Input
+                    value={form.submission_deadline}
+                    onChange={(e) => setForm({ ...form, submission_deadline: e.target.value })}
+                    placeholder="e.g., End of Q2 2026, Rolling..."
+                  />
+                ) : (
+                  <Input
+                    type="datetime-local"
+                    value={form.submission_deadline}
+                    onChange={(e) => setForm({ ...form, submission_deadline: e.target.value })}
+                  />
+                )}
                 <SetReminderPopover
                   reminderType="submission_deadline"
                   projectTitle={form.title}
