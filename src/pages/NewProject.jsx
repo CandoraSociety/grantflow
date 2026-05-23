@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, CalendarDays, Type } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const PROJECT_TYPES = [
@@ -31,8 +31,10 @@ export default function NewProject() {
     funder_type: '',
     description: '',
     submission_deadline: '',
+    open_for_submissions: '',
     award_amount: '',
   });
+  const [openDateMode, setOpenDateMode] = useState('text'); // 'date' or 'text'
 
   const typeConfig = PROJECT_TYPES.find(t => t.value === form.project_type) || PROJECT_TYPES[0];
   const isGrantOrDonation = ['grant', 'donation'].includes(form.project_type);
@@ -50,6 +52,7 @@ export default function NewProject() {
     createMutation.mutate({
       ...form,
       award_amount: form.award_amount ? Number(form.award_amount) : undefined,
+      open_for_submissions: form.open_for_submissions || undefined,
       status: 'research',
       progress_percentage: 0,
     });
@@ -134,6 +137,38 @@ export default function NewProject() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
+                <Label>Open for Submissions</Label>
+                <div className="flex gap-1 mb-1">
+                  <button
+                    type="button"
+                    onClick={() => { setOpenDateMode('text'); setForm({ ...form, open_for_submissions: '' }); }}
+                    className={cn('flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border transition-all', openDateMode === 'text' ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground hover:text-foreground')}
+                  >
+                    <Type className="w-3 h-3" /> Text
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setOpenDateMode('date'); setForm({ ...form, open_for_submissions: '' }); }}
+                    className={cn('flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border transition-all', openDateMode === 'date' ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground hover:text-foreground')}
+                  >
+                    <CalendarDays className="w-3 h-3" /> Date
+                  </button>
+                </div>
+                {openDateMode === 'text' ? (
+                  <Input
+                    value={form.open_for_submissions}
+                    onChange={(e) => setForm({ ...form, open_for_submissions: e.target.value })}
+                    placeholder="e.g., Fall 2026, Q1 2027..."
+                  />
+                ) : (
+                  <Input
+                    type="date"
+                    value={form.open_for_submissions}
+                    onChange={(e) => setForm({ ...form, open_for_submissions: e.target.value })}
+                  />
+                )}
+              </div>
+              <div className="space-y-2">
                 <Label>Submission Deadline</Label>
                 <Input
                   type="datetime-local"
@@ -141,6 +176,9 @@ export default function NewProject() {
                   onChange={(e) => setForm({ ...form, submission_deadline: e.target.value })}
                 />
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{typeConfig.amountLabel}</Label>
                 <Input

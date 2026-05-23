@@ -66,6 +66,10 @@
       "format": "date-time",
       "description": "Deadline for submission"
     },
+    "open_for_submissions": {
+      "type": "string",
+      "description": "When the grant/RFP opens for submissions (specific date or free-form text like 'Fall 2026')"
+    },
     "expected_notification_date": {
       "type": "string",
       "description": "Expected date/time period for notification (free-form text)"
