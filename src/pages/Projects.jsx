@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, FolderOpen, Tag, X, ArrowUpDown } from 'lucide-react';
+import { Plus, Search, FolderOpen, Tag, X, ArrowUpDown, Layers } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,6 +18,7 @@ export default function Projects() {
   const [groupFilter, setGroupFilter] = useState(null);
   const [tagFilter, setTagFilter] = useState(null);
   const [sortBy, setSortBy] = useState('updated_desc');
+  const [groupedView, setGroupedView] = useState(true);
   const [showGroupManager, setShowGroupManager] = useState(false);
   const [assigningProject, setAssigningProject] = useState(null);
 
@@ -45,7 +46,6 @@ export default function Projects() {
       case 'alpha_desc': return sorted.sort((a, b) => b.title.localeCompare(a.title));
       case 'deadline_asc': return sorted.sort((a, b) => new Date(a.submission_deadline || '9999') - new Date(b.submission_deadline || '9999'));
       case 'amount_desc': return sorted.sort((a, b) => (b.award_amount || 0) - (a.award_amount || 0));
-      case 'group': return sorted.sort((a, b) => (a.group_id || 'zzz').localeCompare(b.group_id || 'zzz'));
       default: return sorted;
     }
   };
@@ -58,11 +58,9 @@ export default function Projects() {
     return matchesSearch && matchesStatus && matchesGroup && matchesTag;
   }));
 
-  // Group projects by group_id when a group filter is not active
-  const groupedView = !groupFilter && !tagFilter && !search && statusFilter === 'all';
+  const showGroups = groupedView && groups.length > 0;
 
   const getGroupedProjects = () => {
-    const result = [];
     const ungrouped = filtered.filter(p => !p.group_id);
     const grouped = groups.map(g => ({
       group: g,
@@ -117,9 +115,15 @@ export default function Projects() {
               <SelectItem value="alpha_desc">Z → A</SelectItem>
               <SelectItem value="deadline_asc">Deadline (Soonest)</SelectItem>
               <SelectItem value="amount_desc">Amount (Highest)</SelectItem>
-              <SelectItem value="group">By Group</SelectItem>
             </SelectContent>
           </Select>
+          <button
+            onClick={() => setGroupedView(v => !v)}
+            className={`inline-flex items-center gap-1.5 px-3 h-9 rounded-md text-sm font-medium border transition-all ${groupedView ? 'bg-primary text-primary-foreground border-primary' : 'bg-card border-border text-muted-foreground hover:text-foreground'}`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            Group by Category
+          </button>
         </div>
         <div className="flex flex-wrap gap-2">
           <Tabs value={statusFilter} onValueChange={setStatusFilter}>
@@ -163,7 +167,7 @@ export default function Projects() {
       </div>
 
       {/* Projects list — grouped or flat */}
-      {groupedView && groups.length > 0 ? (
+      {showGroups ? (
         <div className="space-y-8">
           {getGroupedProjects().grouped.map(({ group, projects: gProjects }) => (
             <div key={group.id}>
