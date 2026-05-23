@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Upload, Trash2, FileText, ExternalLink, CheckSquare2, Loader2 } from 'lucide-react';
+import { Plus, Upload, Trash2, FileText, ExternalLink, Download, CheckSquare2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -234,11 +234,18 @@ export default function SubmissionTab({ projectId, project, submissionDocuments 
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {doc.file_url && doc.file_url !== 'auto-filed' && (
-                            <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                              <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="w-3.5 h-3.5" />
-                              </a>
-                            </Button>
+                            <>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" title="Open" asChild>
+                                <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" title="Download" asChild>
+                                <a href={doc.file_url} download={doc.file_name}>
+                                  <Download className="w-3.5 h-3.5" />
+                                </a>
+                              </Button>
+                            </>
                           )}
                           <Button
                             variant="ghost"
