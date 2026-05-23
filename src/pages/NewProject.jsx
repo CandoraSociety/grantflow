@@ -36,7 +36,7 @@ export default function NewProject() {
     award_amount: '',
   });
   const [openDateMode, setOpenDateMode] = useState('text'); // 'date' or 'text'
-  const [deadlineDateMode, setDeadlineDateMode] = useState('date'); // 'date' or 'text'
+  const [amountMode, setAmountMode] = useState('number'); // 'number' or 'text'
 
   const typeConfig = PROJECT_TYPES.find(t => t.value === form.project_type) || PROJECT_TYPES[0];
   const isGrantOrDonation = ['grant', 'donation'].includes(form.project_type);
@@ -53,7 +53,7 @@ export default function NewProject() {
     e.preventDefault();
     createMutation.mutate({
       ...form,
-      award_amount: form.award_amount ? Number(form.award_amount) : undefined,
+      award_amount: (amountMode === 'number' && form.award_amount) ? Number(form.award_amount) : (form.award_amount || undefined),
       open_for_submissions: form.open_for_submissions || undefined,
       status: 'research',
       progress_percentage: 0,
@@ -177,35 +177,11 @@ export default function NewProject() {
               </div>
               <div className="space-y-2">
                 <Label>Submission Deadline</Label>
-                <div className="flex gap-1 mb-1">
-                  <button
-                    type="button"
-                    onClick={() => { setDeadlineDateMode('text'); setForm({ ...form, submission_deadline: '' }); }}
-                    className={cn('flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border transition-all', deadlineDateMode === 'text' ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground hover:text-foreground')}
-                  >
-                    <Type className="w-3 h-3" /> Text
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setDeadlineDateMode('date'); setForm({ ...form, submission_deadline: '' }); }}
-                    className={cn('flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border transition-all', deadlineDateMode === 'date' ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground hover:text-foreground')}
-                  >
-                    <CalendarDays className="w-3 h-3" /> Date
-                  </button>
-                </div>
-                {deadlineDateMode === 'text' ? (
-                  <Input
-                    value={form.submission_deadline}
-                    onChange={(e) => setForm({ ...form, submission_deadline: e.target.value })}
-                    placeholder="e.g., End of Q2 2026, Rolling..."
-                  />
-                ) : (
-                  <Input
-                    type="datetime-local"
-                    value={form.submission_deadline}
-                    onChange={(e) => setForm({ ...form, submission_deadline: e.target.value })}
-                  />
-                )}
+                <Input
+                  type="datetime-local"
+                  value={form.submission_deadline}
+                  onChange={(e) => setForm({ ...form, submission_deadline: e.target.value })}
+                />
                 <SetReminderPopover
                   reminderType="submission_deadline"
                   projectTitle={form.title}
@@ -217,12 +193,36 @@ export default function NewProject() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{typeConfig.amountLabel}</Label>
-                <Input
-                  type="number"
-                  value={form.award_amount}
-                  onChange={(e) => setForm({ ...form, award_amount: e.target.value })}
-                  placeholder="0.00"
-                />
+                <div className="flex gap-1 mb-1">
+                  <button
+                    type="button"
+                    onClick={() => { setAmountMode('number'); setForm({ ...form, award_amount: '' }); }}
+                    className={cn('flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border transition-all', amountMode === 'number' ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground hover:text-foreground')}
+                  >
+                    # Amount
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAmountMode('text'); setForm({ ...form, award_amount: '' }); }}
+                    className={cn('flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border transition-all', amountMode === 'text' ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground hover:text-foreground')}
+                  >
+                    <Type className="w-3 h-3" /> Text
+                  </button>
+                </div>
+                {amountMode === 'number' ? (
+                  <Input
+                    type="number"
+                    value={form.award_amount}
+                    onChange={(e) => setForm({ ...form, award_amount: e.target.value })}
+                    placeholder="0.00"
+                  />
+                ) : (
+                  <Input
+                    value={form.award_amount}
+                    onChange={(e) => setForm({ ...form, award_amount: e.target.value })}
+                    placeholder="e.g., $50K–$100K, Up to $250,000..."
+                  />
+                )}
               </div>
             </div>
 
