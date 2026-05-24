@@ -1,0 +1,61 @@
+{
+  "name": "FundingSource",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the funder (e.g., Government of Alberta, Calgary Foundation, Patagonia)"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "government_body",
+        "ministry",
+        "foundation",
+        "corporate",
+        "other"
+      ],
+      "description": "Type of funding source"
+    },
+    "government_level": {
+      "type": "string",
+      "enum": [
+        "federal",
+        "provincial",
+        "municipal",
+        "none"
+      ],
+      "default": "none",
+      "description": "Government level (for government_body and ministry types)"
+    },
+    "parent_id": {
+      "type": "string",
+      "description": "Parent FundingSource ID \u2014 e.g., a ministry's parent is a government body"
+    },
+    "website": {
+      "type": "string",
+      "description": "Main website URL"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief overview of this funder or ministry"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes about this source"
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_phone": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "source_type"
+  ]
+}

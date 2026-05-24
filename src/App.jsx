@@ -15,6 +15,7 @@ import Reports from '@/pages/Reports';
 import Funders from '@/pages/Funders';
 import FileStorage from '@/pages/FileStorage';
 import Submissions from '@/pages/Submissions';
+import FundingDatabase from '@/pages/FundingDatabase';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,6 +49,7 @@ const AuthenticatedApp = () => {
         <Route path="/funders" element={<Funders />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/files" element={<FileStorage />} />
+        <Route path="/funding-database" element={<FundingDatabase />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
