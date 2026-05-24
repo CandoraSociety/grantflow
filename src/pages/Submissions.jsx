@@ -18,7 +18,9 @@ export default function Submissions() {
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['projects-submitted'],
-    queryFn: () => base44.entities.Project.filter({ status: ['submitted', 'awarded'] }, '-created_date'),
+    queryFn: () => base44.entities.Project.list('-created_date').then(all =>
+      all.filter(p => ['submitted', 'awarded', 'declined', 'reporting'].includes(p.status))
+    ),
   });
 
   const { data: submissionDocs = [] } = useQuery({
@@ -130,85 +132,98 @@ export default function Submissions() {
         </Select>
       </div>
 
-      {/* Results */}
-      <div className="space-y-4">
-        {filteredProjects.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground border-2 border-dashed border-border rounded-lg">
-            <p className="text-sm">No submissions found</p>
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {filteredProjects.map(project => {
-              const projectDocs = submissionDocs.filter(d => d.project_id === project.id);
-              return (
-                <Card key={project.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg">{project.title}</CardTitle>
-                        <div className="flex items-center gap-2 mt-2 flex-wrap">
-                          <span className="text-sm text-muted-foreground">{project.funder_name}</span>
-                          {project.proposal_category && (
-                            <Badge variant="outline" className="text-xs">
-                              {project.proposal_category.replace(/_/g, ' ')}
-                            </Badge>
-                          )}
-                          <Badge variant={project.status === 'awarded' ? 'default' : 'secondary'} className="text-xs">
-                            {project.status}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(project.created_date), 'MMM d, yyyy')}
-                        </p>
-                        {project.award_amount && (
-                          <p className="font-semibold text-accent mt-1">
-                            ${project.award_amount.toLocaleString()}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {projectDocs.length > 0 ? (
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground mb-3">
-                          {projectDocs.length} Document{projectDocs.length !== 1 ? 's' : ''}
-                        </p>
-                        <div className="grid gap-2">
-                          {projectDocs.slice(0, 3).map(doc => (
-                            <div key={doc.id} className="flex items-center justify-between p-2 bg-secondary/50 rounded text-sm">
-                              <div className="flex items-center gap-2 min-w-0 flex-1">
-                                <FileText className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                                <span className="truncate text-xs">{doc.file_name}</span>
+      {/* Results grouped by decision */}
+      {filteredProjects.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground border-2 border-dashed border-border rounded-lg">
+          <p className="text-sm">No submissions found</p>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {[
+            { key: 'pending', label: 'Pending Decision', statuses: ['submitted'], badgeClass: 'bg-primary/10 text-primary' },
+            { key: 'awarded', label: 'Awarded', statuses: ['awarded', 'reporting'], badgeClass: 'bg-accent/20 text-accent' },
+            { key: 'rejected', label: 'Rejected', statuses: ['declined'], badgeClass: 'bg-destructive/10 text-destructive' },
+          ].map(group => {
+            const groupProjects = filteredProjects.filter(p => group.statuses.includes(p.status));
+            if (groupProjects.length === 0) return null;
+            return (
+              <div key={group.key}>
+                <div className="flex items-center gap-3 mb-4">
+                  <h2 className="font-heading font-semibold text-base">{group.label}</h2>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${group.badgeClass}`}>
+                    {groupProjects.length}
+                  </span>
+                </div>
+                <div className="grid gap-4">
+                  {groupProjects.map(project => {
+                    const projectDocs = submissionDocs.filter(d => d.project_id === project.id);
+                    return (
+                      <Card key={project.id} className="hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <CardTitle className="text-lg">{project.title}</CardTitle>
+                              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                <span className="text-sm text-muted-foreground">{project.funder_name}</span>
+                                {project.proposal_category && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {project.proposal_category.replace(/_/g, ' ')}
+                                  </Badge>
+                                )}
                               </div>
-                              {doc.file_url && doc.file_url !== 'auto-filed' && (
-                                <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" asChild>
-                                  <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
-                                    <ExternalLink className="w-3 h-3" />
-                                  </a>
-                                </Button>
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              <p className="text-xs text-muted-foreground">
+                                {format(new Date(project.created_date), 'MMM d, yyyy')}
+                              </p>
+                              {project.award_amount && (
+                                <p className="font-semibold text-accent mt-1">
+                                  ${project.award_amount.toLocaleString()}
+                                </p>
                               )}
                             </div>
-                          ))}
-                          {projectDocs.length > 3 && (
-                            <p className="text-xs text-muted-foreground pl-2">
-                              +{projectDocs.length - 3} more
-                            </p>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          {projectDocs.length > 0 ? (
+                            <div className="space-y-2">
+                              <p className="text-xs font-medium text-muted-foreground mb-3">
+                                {projectDocs.length} Document{projectDocs.length !== 1 ? 's' : ''}
+                              </p>
+                              <div className="grid gap-2">
+                                {projectDocs.slice(0, 3).map(doc => (
+                                  <div key={doc.id} className="flex items-center justify-between p-2 bg-secondary/50 rounded text-sm">
+                                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                                      <FileText className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                                      <span className="truncate text-xs">{doc.file_name}</span>
+                                    </div>
+                                    {doc.file_url && doc.file_url !== 'auto-filed' && (
+                                      <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" asChild>
+                                        <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                                          <ExternalLink className="w-3 h-3" />
+                                        </a>
+                                      </Button>
+                                    )}
+                                  </div>
+                                ))}
+                                {projectDocs.length > 3 && (
+                                  <p className="text-xs text-muted-foreground pl-2">+{projectDocs.length - 3} more</p>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">No documents on file</p>
                           )}
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">No documents on file</p>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

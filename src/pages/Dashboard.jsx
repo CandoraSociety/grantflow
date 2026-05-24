@@ -6,6 +6,7 @@ import { Plus, FolderOpen, FileText, FileArchive } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import StatsRow from '@/components/dashboard/StatsRow';
 import ProjectsList from '@/components/dashboard/ProjectsList';
+import ActiveProposalsList from '@/components/dashboard/ActiveProposalsList';
 import ReportCalendar from '@/components/dashboard/ReportCalendar';
 import UpcomingReports from '@/components/dashboard/UpcomingReports';
 import CountdownBanner from '@/components/dashboard/CountdownBanner';
@@ -111,7 +112,7 @@ export default function Dashboard() {
               <h2 className="font-heading font-semibold text-base">Recent Projects</h2>
               <Link to="/projects" className="text-xs text-primary hover:underline font-medium">View all</Link>
             </div>
-            <ProjectsList projects={projects} limit={5} />
+            <ActiveProposalsList projects={projects} />
           </div>
           <ReportCalendar reports={reports} projects={projects} milestones={milestones} />
         </div>
