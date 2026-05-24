@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { FileText, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 export default function StatsRow({ projects, reports }) {
-  const activeProjects = projects.filter(p => !['awarded', 'declined'].includes(p.status)).length;
+  const activeProjects = projects.filter(p => !['awarded', 'declined', 'reporting'].includes(p.status)).length;
   const submittedCount = projects.filter(p => p.status === 'submitted').length;
   const awardedCount = projects.filter(p => p.status === 'awarded').length;
   const overdueReports = reports.filter(r => r.status === 'overdue').length;
