@@ -9,7 +9,7 @@ export default function StatsRow({ projects, reports }) {
   const overdueReports = reports.filter(r => r.status === 'overdue').length;
 
   const stats = [
-    { label: 'Active Projects', value: activeProjects, icon: FileText, color: 'text-primary bg-primary/10' },
+    { label: 'Active Proposals', value: activeProjects, icon: FileText, color: 'text-primary bg-primary/10' },
     { label: 'Submitted', value: submittedCount, icon: Clock, color: 'text-accent bg-accent/10' },
     { label: 'Awarded', value: awardedCount, icon: CheckCircle2, color: 'text-accent bg-accent/10' },
     { label: 'Overdue Reports', value: overdueReports, icon: AlertTriangle, color: 'text-destructive bg-destructive/10' },
