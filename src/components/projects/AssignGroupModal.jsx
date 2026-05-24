@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 export default function AssignGroupModal({ open, onClose, project }) {
   const queryClient = useQueryClient();
   const [tagInput, setTagInput] = useState('');
+  const [currentGroupId, setCurrentGroupId] = useState(project?.group_id || null);
+  const [currentTags, setCurrentTags] = useState(project?.tags || []);
 
   const { data: groups = [] } = useQuery({
     queryKey: ['projectGroups'],
@@ -25,29 +27,31 @@ export default function AssignGroupModal({ open, onClose, project }) {
   });
 
   const handleGroupSelect = (groupId, groupName) => {
-    const removing = project.group_id === groupId;
+    const removing = currentGroupId === groupId;
+    const newGroupId = removing ? null : groupId;
+    setCurrentGroupId(newGroupId);
     updateMutation.mutate(
-      { group_id: removing ? null : groupId },
+      { group_id: newGroupId },
       { onSuccess: () => toast.success(removing ? 'Removed from group' : `Added to "${groupName}"`) }
     );
   };
 
   const handleAddTag = () => {
     const tag = tagInput.trim();
-    if (!tag) return;
-    const existing = project.tags || [];
-    if (!existing.includes(tag)) {
-      updateMutation.mutate(
-        { tags: [...existing, tag] },
-        { onSuccess: () => toast.success(`Tag "${tag}" added`) }
-      );
-    }
+    if (!tag || currentTags.includes(tag)) return;
+    const newTags = [...currentTags, tag];
+    setCurrentTags(newTags);
+    updateMutation.mutate(
+      { tags: newTags },
+      { onSuccess: () => toast.success(`Tag "${tag}" added`) }
+    );
     setTagInput('');
   };
 
   const handleRemoveTag = (tag) => {
-    const updated = (project.tags || []).filter(t => t !== tag);
-    updateMutation.mutate({ tags: updated });
+    const newTags = currentTags.filter(t => t !== tag);
+    setCurrentTags(newTags);
+    updateMutation.mutate({ tags: newTags });
   };
 
   if (!project) return null;
@@ -73,7 +77,7 @@ export default function AssignGroupModal({ open, onClose, project }) {
                   onClick={() => handleGroupSelect(g.id, g.name)}
                   className={cn(
                     'w-full flex items-center gap-3 p-2.5 rounded-lg border text-left transition-all',
-                    project.group_id === g.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'
+                    currentGroupId === g.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'
                   )}
                 >
                   <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: g.color || '#6366f1' }} />
@@ -81,7 +85,7 @@ export default function AssignGroupModal({ open, onClose, project }) {
                     <p className="text-sm font-medium">{g.name}</p>
                     {g.description && <p className="text-xs text-muted-foreground">{g.description}</p>}
                   </div>
-                  {project.group_id === g.id && <Check className="w-4 h-4 text-primary flex-shrink-0" />}
+                  {currentGroupId === g.id && <Check className="w-4 h-4 text-primary flex-shrink-0" />}
                 </button>
               ))}
             </div>
@@ -91,7 +95,7 @@ export default function AssignGroupModal({ open, onClose, project }) {
           <div>
             <p className="text-sm font-medium mb-2">Tags</p>
             <div className="flex flex-wrap gap-1.5 mb-2 min-h-[28px]">
-              {(project.tags || []).map(tag => (
+              {currentTags.map(tag => (
                 <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 bg-secondary rounded-full text-xs font-medium">
                   {tag}
                   <button onClick={() => handleRemoveTag(tag)} className="hover:text-destructive">
@@ -99,7 +103,7 @@ export default function AssignGroupModal({ open, onClose, project }) {
                   </button>
                 </span>
               ))}
-              {(project.tags || []).length === 0 && (
+              {currentTags.length === 0 && (
                 <span className="text-xs text-muted-foreground">No tags yet</span>
               )}
             </div>
