@@ -1,18 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { Check, X } from 'lucide-react';
+import { Check, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AssignGroupModal({ open, onClose, project }) {
   const queryClient = useQueryClient();
   const [tagInput, setTagInput] = useState('');
-  const [currentGroupId, setCurrentGroupId] = useState(project?.group_id || null);
+  const [selectedGroupId, setSelectedGroupId] = useState(project?.group_id || null);
   const [currentTags, setCurrentTags] = useState(project?.tags || []);
+
+  // Sync state when project changes (e.g. different project opened)
+  useEffect(() => {
+    setSelectedGroupId(project?.group_id || null);
+    setCurrentTags(project?.tags || []);
+    setTagInput('');
+  }, [project?.id]);
 
   const { data: groups = [] } = useQuery({
     queryKey: ['projectGroups'],
@@ -25,16 +32,6 @@ export default function AssignGroupModal({ open, onClose, project }) {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
     },
   });
-
-  const handleGroupSelect = (groupId, groupName) => {
-    const removing = currentGroupId === groupId;
-    const newGroupId = removing ? null : groupId;
-    setCurrentGroupId(newGroupId);
-    updateMutation.mutate(
-      { group_id: newGroupId },
-      { onSuccess: () => toast.success(removing ? 'Removed from group' : `Added to "${groupName}"`) }
-    );
-  };
 
   const handleAddTag = () => {
     const tag = tagInput.trim();
@@ -52,6 +49,24 @@ export default function AssignGroupModal({ open, onClose, project }) {
     const newTags = currentTags.filter(t => t !== tag);
     setCurrentTags(newTags);
     updateMutation.mutate({ tags: newTags });
+  };
+
+  const handleDone = () => {
+    // Only save the group if it changed
+    if (selectedGroupId !== (project?.group_id || null)) {
+      const groupName = groups.find(g => g.id === selectedGroupId)?.name;
+      updateMutation.mutate(
+        { group_id: selectedGroupId },
+        {
+          onSuccess: () => {
+            toast.success(selectedGroupId ? `Added to "${groupName}"` : 'Removed from group');
+            onClose();
+          },
+        }
+      );
+    } else {
+      onClose();
+    }
   };
 
   if (!project) return null;
@@ -74,10 +89,11 @@ export default function AssignGroupModal({ open, onClose, project }) {
               {groups.map(g => (
                 <button
                   key={g.id}
-                  onClick={() => handleGroupSelect(g.id, g.name)}
+                  type="button"
+                  onClick={() => setSelectedGroupId(selectedGroupId === g.id ? null : g.id)}
                   className={cn(
                     'w-full flex items-center gap-3 p-2.5 rounded-lg border text-left transition-all',
-                    currentGroupId === g.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'
+                    selectedGroupId === g.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'
                   )}
                 >
                   <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: g.color || '#6366f1' }} />
@@ -85,7 +101,7 @@ export default function AssignGroupModal({ open, onClose, project }) {
                     <p className="text-sm font-medium">{g.name}</p>
                     {g.description && <p className="text-xs text-muted-foreground">{g.description}</p>}
                   </div>
-                  {currentGroupId === g.id && <Check className="w-4 h-4 text-primary flex-shrink-0" />}
+                  {selectedGroupId === g.id && <Check className="w-4 h-4 text-primary flex-shrink-0" />}
                 </button>
               ))}
             </div>
@@ -118,6 +134,13 @@ export default function AssignGroupModal({ open, onClose, project }) {
               <Button size="sm" onClick={handleAddTag} disabled={!tagInput.trim()}>Add</Button>
             </div>
           </div>
+        </div>
+
+        <div className="flex justify-end pt-2">
+          <Button onClick={handleDone} disabled={updateMutation.isPending}>
+            {updateMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+            Done
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
