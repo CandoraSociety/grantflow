@@ -5,18 +5,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { Check, X, Loader2 } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AssignGroupModal({ open, onClose, project }) {
   const queryClient = useQueryClient();
   const [tagInput, setTagInput] = useState('');
-  const [selectedGroupId, setSelectedGroupId] = useState(project?.group_id || null);
+  const [currentGroupId, setCurrentGroupId] = useState(project?.group_id || null);
   const [currentTags, setCurrentTags] = useState(project?.tags || []);
 
-  // Sync state when project changes (e.g. different project opened)
   useEffect(() => {
-    setSelectedGroupId(project?.group_id || null);
+    setCurrentGroupId(project?.group_id || null);
     setCurrentTags(project?.tags || []);
     setTagInput('');
   }, [project?.id]);
@@ -26,47 +25,42 @@ export default function AssignGroupModal({ open, onClose, project }) {
     queryFn: () => base44.entities.ProjectGroup.list('name'),
   });
 
-  const updateMutation = useMutation({
+  const groupMutation = useMutation({
     mutationFn: (data) => base44.entities.Project.update(project.id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
   });
+
+  const tagMutation = useMutation({
+    mutationFn: (data) => base44.entities.Project.update(project.id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects'] }),
+  });
+
+  const handleGroupSelect = (groupId, groupName) => {
+    const removing = currentGroupId === groupId;
+    const newGroupId = removing ? null : groupId;
+    setCurrentGroupId(newGroupId);
+    groupMutation.mutate(
+      { group_id: newGroupId },
+      { onSuccess: () => toast.success(removing ? 'Removed from group' : `Added to "${groupName}"`) }
+    );
+  };
 
   const handleAddTag = () => {
     const tag = tagInput.trim();
     if (!tag || currentTags.includes(tag)) return;
     const newTags = [...currentTags, tag];
     setCurrentTags(newTags);
-    updateMutation.mutate(
+    setTagInput('');
+    tagMutation.mutate(
       { tags: newTags },
       { onSuccess: () => toast.success(`Tag "${tag}" added`) }
     );
-    setTagInput('');
   };
 
   const handleRemoveTag = (tag) => {
     const newTags = currentTags.filter(t => t !== tag);
     setCurrentTags(newTags);
-    updateMutation.mutate({ tags: newTags });
-  };
-
-  const handleDone = () => {
-    // Only save the group if it changed
-    if (selectedGroupId !== (project?.group_id || null)) {
-      const groupName = groups.find(g => g.id === selectedGroupId)?.name;
-      updateMutation.mutate(
-        { group_id: selectedGroupId },
-        {
-          onSuccess: () => {
-            toast.success(selectedGroupId ? `Added to "${groupName}"` : 'Removed from group');
-            onClose();
-          },
-        }
-      );
-    } else {
-      onClose();
-    }
+    tagMutation.mutate({ tags: newTags });
   };
 
   if (!project) return null;
@@ -90,10 +84,10 @@ export default function AssignGroupModal({ open, onClose, project }) {
                 <button
                   key={g.id}
                   type="button"
-                  onClick={() => setSelectedGroupId(selectedGroupId === g.id ? null : g.id)}
+                  onClick={() => handleGroupSelect(g.id, g.name)}
                   className={cn(
                     'w-full flex items-center gap-3 p-2.5 rounded-lg border text-left transition-all',
-                    selectedGroupId === g.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'
+                    currentGroupId === g.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'
                   )}
                 >
                   <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: g.color || '#6366f1' }} />
@@ -101,7 +95,7 @@ export default function AssignGroupModal({ open, onClose, project }) {
                     <p className="text-sm font-medium">{g.name}</p>
                     {g.description && <p className="text-xs text-muted-foreground">{g.description}</p>}
                   </div>
-                  {selectedGroupId === g.id && <Check className="w-4 h-4 text-primary flex-shrink-0" />}
+                  {currentGroupId === g.id && <Check className="w-4 h-4 text-primary flex-shrink-0" />}
                 </button>
               ))}
             </div>
@@ -134,13 +128,6 @@ export default function AssignGroupModal({ open, onClose, project }) {
               <Button size="sm" onClick={handleAddTag} disabled={!tagInput.trim()}>Add</Button>
             </div>
           </div>
-        </div>
-
-        <div className="flex justify-end pt-2">
-          <Button onClick={handleDone} disabled={updateMutation.isPending}>
-            {updateMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-            Done
-          </Button>
         </div>
       </DialogContent>
     </Dialog>
