@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -24,6 +24,24 @@ export default function AssignGroupModal({ open, onClose, project }) {
     queryKey: ['projectGroups'],
     queryFn: () => base44.entities.ProjectGroup.list('name'),
   });
+
+  const { data: allProjects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => base44.entities.Project.list(),
+  });
+
+  const allExistingTags = useMemo(() => {
+    const tagSet = new Set();
+    allProjects.forEach(p => (p.tags || []).forEach(t => tagSet.add(t)));
+    return Array.from(tagSet).sort();
+  }, [allProjects]);
+
+  const tagSuggestions = useMemo(() => {
+    if (!tagInput.trim()) return [];
+    return allExistingTags.filter(
+      t => t.toLowerCase().includes(tagInput.toLowerCase()) && !currentTags.includes(t)
+    );
+  }, [tagInput, allExistingTags, currentTags]);
 
   const groupMutation = useMutation({
     mutationFn: (data) => base44.entities.Project.update(project.id, data),
@@ -117,15 +135,39 @@ export default function AssignGroupModal({ open, onClose, project }) {
                 <span className="text-xs text-muted-foreground">No tags yet</span>
               )}
             </div>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Add a tag..."
-                value={tagInput}
-                onChange={e => setTagInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAddTag()}
-                className="h-8 text-sm"
-              />
-              <Button type="button" size="sm" onClick={handleAddTag} disabled={!tagInput.trim()}>Add</Button>
+            <div className="relative">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add a tag..."
+                  value={tagInput}
+                  onChange={e => setTagInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') { e.preventDefault(); handleAddTag(); }
+                    if (e.key === 'Escape') setTagInput('');
+                  }}
+                  className="h-8 text-sm"
+                />
+                <Button type="button" size="sm" onClick={handleAddTag} disabled={!tagInput.trim()}>Add</Button>
+              </div>
+              {tagSuggestions.length > 0 && (
+                <div className="absolute z-10 top-full left-0 right-10 mt-1 bg-popover border rounded-md shadow-md overflow-hidden">
+                  {tagSuggestions.map(suggestion => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => {
+                        const newTags = [...currentTags, suggestion];
+                        setCurrentTags(newTags);
+                        setTagInput('');
+                        tagMutation.mutate({ tags: newTags }, { onSuccess: () => toast.success(`Tag "${suggestion}" added`) });
+                      }}
+                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
