@@ -95,7 +95,7 @@ export default function Projects() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search projects..."
+              placeholder="Search proposals..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
