@@ -125,7 +125,7 @@ export default function AssignGroupModal({ open, onClose, project }) {
                 onKeyDown={e => e.key === 'Enter' && handleAddTag()}
                 className="h-8 text-sm"
               />
-              <Button size="sm" onClick={handleAddTag} disabled={!tagInput.trim()}>Add</Button>
+              <Button type="button" size="sm" onClick={handleAddTag} disabled={!tagInput.trim()}>Add</Button>
             </div>
           </div>
         </div>
