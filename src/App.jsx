@@ -42,9 +42,9 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/projects" element={<Projects />} />
-        <Route path="/projects/new" element={<NewProject />} />
-        <Route path="/projects/:id" element={<ProjectDetail />} />
+        <Route path="/proposals" element={<Projects />} />
+        <Route path="/proposals/new" element={<NewProject />} />
+        <Route path="/proposals/:id" element={<ProjectDetail />} />
         <Route path="/submissions" element={<Submissions />} />
         <Route path="/funders" element={<Funders />} />
         <Route path="/reports" element={<Reports />} />

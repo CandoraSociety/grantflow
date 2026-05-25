@@ -45,7 +45,7 @@ export default function NewProject() {
     mutationFn: (data) => base44.entities.Project.create(data),
     onSuccess: (created) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      navigate(`/projects/${created.id}`);
+      navigate(`/proposals/${created.id}`);
     },
   });
 
@@ -62,7 +62,7 @@ export default function NewProject() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link to="/projects" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+      <Link to="/proposals" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
         <ArrowLeft className="w-4 h-4" /> Back to Proposals
       </Link>
 
@@ -237,7 +237,7 @@ export default function NewProject() {
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => navigate('/projects')}>Cancel</Button>
+              <Button type="button" variant="outline" onClick={() => navigate('/proposals')}>Cancel</Button>
               <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Create Proposal

@@ -81,7 +81,7 @@ export default function Projects() {
           <Button variant="outline" className="gap-2" onClick={() => setShowGroupManager(true)}>
             <FolderOpen className="w-4 h-4" /> Manage Groups
           </Button>
-          <Link to="/projects/new">
+          <Link to="/proposals/new">
             <Button className="gap-2 shadow-sm">
               <Plus className="w-4 h-4" /> New Proposal
             </Button>

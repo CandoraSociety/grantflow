@@ -124,8 +124,8 @@ export default function ProjectDetail() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4">
-        <Link to="/projects" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground w-fit">
-          <ArrowLeft className="w-4 h-4" /> Back to Projects
+        <Link to="/proposals" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground w-fit">
+          <ArrowLeft className="w-4 h-4" /> Back to Proposals
         </Link>
 
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">

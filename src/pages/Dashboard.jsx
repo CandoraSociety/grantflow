@@ -79,7 +79,7 @@ export default function Dashboard() {
           <h1 className="text-2xl sm:text-3xl font-heading font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground text-sm mt-1">Overview of your grants and proposals</p>
         </div>
-        <Link to="/projects/new">
+        <Link to="/proposals/new">
           <Button className="gap-2 shadow-sm">
             <Plus className="w-4 h-4" />
             New Proposal
@@ -110,7 +110,7 @@ export default function Dashboard() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-heading font-semibold text-base">Recent Projects</h2>
-              <Link to="/projects" className="text-xs text-primary hover:underline font-medium">View all</Link>
+              <Link to="/proposals" className="text-xs text-primary hover:underline font-medium">View all</Link>
             </div>
             <ActiveProposalsList projects={projects} />
           </div>
