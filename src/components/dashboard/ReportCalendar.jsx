@@ -41,6 +41,24 @@ function buildDeadlines(reports, projects, milestones = []) {
     });
   });
 
+  projects.forEach(p => {
+    if (!p.expected_notification_date) return;
+    // Only include if it looks like a parseable date (not free text like "Fall 2026")
+    const d = new Date(p.expected_notification_date);
+    if (isNaN(d.getTime())) return;
+    deadlines.push({
+      id: `notification-${p.id}`,
+      type: 'notification',
+      date: p.expected_notification_date,
+      title: p.title,
+      project_id: p.id,
+      projectTitle: p.title,
+      funderName: p.funder_name,
+      projectStatus: p.status,
+      notes: p.expected_notification_notes || p.description,
+    });
+  });
+
   milestones.forEach(m => {
     if (!m.date) return;
     const project = projects.find(p => p.id === m.project_id);
@@ -64,6 +82,7 @@ const DEADLINE_STYLES = {
   report: 'bg-primary/10 text-primary border-primary/20',
   proposal: 'bg-amber-100 text-amber-700 border-amber-200',
   milestone: 'bg-purple-100 text-purple-700 border-purple-200',
+  notification: 'bg-teal-100 text-teal-700 border-teal-200',
 };
 
 export default function ReportCalendar({ reports, projects, milestones = [] }) {
@@ -103,6 +122,10 @@ export default function ReportCalendar({ reports, projects, milestones = [] }) {
                 <span className="flex items-center gap-1">
                   <span className="inline-block w-2.5 h-2.5 rounded-sm bg-purple-100 border border-purple-300" />
                   Milestone
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-2.5 h-2.5 rounded-sm bg-teal-100 border border-teal-300" />
+                  Notification
                 </span>
               </div>
             </div>
