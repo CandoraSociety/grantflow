@@ -5,11 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Plus, Database, Bot, Upload } from 'lucide-react';
+import { Search, Plus, Database, Bot, Upload, TrendingUp } from 'lucide-react';
 import FundingSourceBlock from '@/components/funding/FundingSourceBlock';
 import FundingSourceForm from '@/components/funding/FundingSourceForm';
 import FundingDatabaseChat from '@/components/funding/FundingDatabaseChat';
 import FundingCSVImport from '@/components/funding/FundingCSVImport';
+import FundingPipelineKanban from '@/components/funding/FundingPipelineKanban';
 
 export default function FundingDatabase() {
   const [search, setSearch] = useState('');
@@ -121,6 +122,9 @@ export default function FundingDatabase() {
           <TabsTrigger value="database" className="gap-1.5">
             <Database className="w-4 h-4" /> Database
           </TabsTrigger>
+          <TabsTrigger value="pipeline" className="gap-1.5">
+            <TrendingUp className="w-4 h-4" /> Pipeline
+          </TabsTrigger>
           <TabsTrigger value="chat" className="gap-1.5">
             <Bot className="w-4 h-4" /> MoneyMan
           </TabsTrigger>
@@ -191,6 +195,8 @@ export default function FundingDatabase() {
           )}
         </>
       )}
+
+      {activeTab === 'pipeline' && <FundingPipelineKanban sources={sources} />}
 
       {activeTab === 'chat' && <FundingDatabaseChat />}
 

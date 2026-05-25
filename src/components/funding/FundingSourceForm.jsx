@@ -28,6 +28,9 @@ export default function FundingSourceForm({ source, onClose }) {
     contact_name: source?.contact_name || '',
     contact_email: source?.contact_email || '',
     contact_phone: source?.contact_phone || '',
+    pipeline_status: source?.pipeline_status || 'prospect',
+    fit_score: source?.fit_score || '',
+    relationship_score: source?.relationship_score || '',
   });
 
   const mutation = useMutation({
@@ -53,6 +56,9 @@ export default function FundingSourceForm({ source, onClose }) {
       contact_name: form.contact_name || undefined,
       contact_email: form.contact_email || undefined,
       contact_phone: form.contact_phone || undefined,
+      pipeline_status: form.pipeline_status || 'prospect',
+      fit_score: form.fit_score ? Number(form.fit_score) : undefined,
+      relationship_score: form.relationship_score ? Number(form.relationship_score) : undefined,
     });
   };
 
@@ -62,7 +68,7 @@ export default function FundingSourceForm({ source, onClose }) {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{source ? 'Edit' : 'Add'} Funding Source</DialogTitle>
         </DialogHeader>
@@ -71,6 +77,7 @@ export default function FundingSourceForm({ source, onClose }) {
             <Label>Name *</Label>
             <Input {...f('name')} placeholder="e.g., Government of Alberta, Calgary Foundation" required />
           </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Type *</Label>
@@ -98,6 +105,40 @@ export default function FundingSourceForm({ source, onClose }) {
               </Select>
             </div>
           </div>
+
+          {/* Pipeline fields */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-2 col-span-3 sm:col-span-1">
+              <Label>Pipeline Status</Label>
+              <Select value={form.pipeline_status} onValueChange={v => setForm({ ...form, pipeline_status: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {['prospect','researching','relationship_building','ready_to_apply','applied','awarded','declined','not_a_fit'].map(s => (
+                    <SelectItem key={s} value={s}>{s.replace(/_/g, ' ')}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Fit Score (1–5)</Label>
+              <Select value={String(form.fit_score)} onValueChange={v => setForm({ ...form, fit_score: v })}>
+                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <SelectContent>
+                  {[1,2,3,4,5].map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Relationship (1–5)</Label>
+              <Select value={String(form.relationship_score)} onValueChange={v => setForm({ ...form, relationship_score: v })}>
+                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <SelectContent>
+                  {[1,2,3,4,5].map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           {parentOptions.length > 0 && (
             <div className="space-y-2">
               <Label>Parent Source (optional)</Label>
@@ -112,6 +153,7 @@ export default function FundingSourceForm({ source, onClose }) {
               </Select>
             </div>
           )}
+
           <div className="space-y-2">
             <Label>Website</Label>
             <Input {...f('website')} placeholder="https://..." />
@@ -138,6 +180,7 @@ export default function FundingSourceForm({ source, onClose }) {
               <Input {...f('contact_phone')} />
             </div>
           </div>
+
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
             <Button type="submit" disabled={mutation.isPending}>

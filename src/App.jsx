@@ -12,7 +12,6 @@ import Projects from '@/pages/Projects';
 import NewProject from '@/pages/NewProject';
 import ProjectDetail from '@/pages/ProjectDetail';
 import Reports from '@/pages/Reports';
-import Funders from '@/pages/Funders';
 import FileStorage from '@/pages/FileStorage';
 import Submissions from '@/pages/Submissions';
 import FundingDatabase from '@/pages/FundingDatabase';
@@ -46,7 +45,6 @@ const AuthenticatedApp = () => {
         <Route path="/proposals/new" element={<NewProject />} />
         <Route path="/proposals/:id" element={<ProjectDetail />} />
         <Route path="/submissions" element={<Submissions />} />
-        <Route path="/funders" element={<Funders />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/files" element={<FileStorage />} />
         <Route path="/funding-database" element={<FundingDatabase />} />

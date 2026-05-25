@@ -1,14 +1,13 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FolderOpen, FileText, Bell, DollarSign, Archive, CheckSquare, Database } from 'lucide-react';
+import { LayoutDashboard, FolderOpen, FileText, Bell, Archive, CheckSquare, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/proposals', label: 'Proposals', icon: FolderOpen },
   { path: '/submissions', label: 'Submissions', icon: CheckSquare },
-  { path: '/funders', label: 'Funders', icon: DollarSign },
-  { path: '/funding-database', label: 'Funding DB', icon: Database },
+  { path: '/funding-database', label: 'Funders', icon: Database },
   { path: '/reports', label: 'Reports', icon: FileText },
   { path: '/files', label: 'Files', icon: Archive },
 ];

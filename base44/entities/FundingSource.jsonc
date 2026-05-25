@@ -52,6 +52,33 @@
     },
     "contact_phone": {
       "type": "string"
+    },
+    "pipeline_status": {
+      "type": "string",
+      "enum": [
+        "prospect",
+        "researching",
+        "relationship_building",
+        "ready_to_apply",
+        "applied",
+        "awarded",
+        "declined",
+        "not_a_fit"
+      ],
+      "default": "prospect",
+      "description": "Where this funder is in the relationship pipeline"
+    },
+    "fit_score": {
+      "type": "number",
+      "description": "1-5 organizational fit score"
+    },
+    "relationship_score": {
+      "type": "number",
+      "description": "1-5 relationship strength score"
+    },
+    "linked_project_id": {
+      "type": "string",
+      "description": "Linked active project ID if an application is underway"
     }
   },
   "required": [

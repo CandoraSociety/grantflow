@@ -16,6 +16,17 @@ const GOV_LEVEL_COLORS = {
   none: 'bg-secondary text-muted-foreground',
 };
 
+const PIPELINE_COLORS = {
+  prospect: 'bg-secondary text-muted-foreground',
+  researching: 'bg-primary/10 text-primary',
+  relationship_building: 'bg-purple-100 text-purple-700',
+  ready_to_apply: 'bg-accent/20 text-accent',
+  applied: 'bg-accent/30 text-accent',
+  awarded: 'bg-green-100 text-green-700',
+  declined: 'bg-destructive/10 text-destructive',
+  not_a_fit: 'bg-secondary text-muted-foreground',
+};
+
 const SOURCE_TYPE_LABELS = {
   government_body: 'Government',
   ministry: 'Ministry / Department',
@@ -70,6 +81,11 @@ export default function FundingSourceBlock({ source, streams = [], children = []
               <Badge variant="secondary" className="text-xs bg-secondary text-muted-foreground">
                 {SOURCE_TYPE_LABELS[source.source_type] || source.source_type}
               </Badge>
+              {source.pipeline_status && source.pipeline_status !== 'prospect' && (
+                <Badge variant="secondary" className={`text-xs ${PIPELINE_COLORS[source.pipeline_status]}`}>
+                  {source.pipeline_status.replace(/_/g, ' ')}
+                </Badge>
+              )}
               {streams.length > 0 && (
                 <span className="text-xs text-muted-foreground">{streams.length} stream{streams.length !== 1 ? 's' : ''}</span>
               )}
