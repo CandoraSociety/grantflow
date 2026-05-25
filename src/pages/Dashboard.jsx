@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus, FolderOpen, Copy, Check } from 'lucide-react';
+import { Plus, FolderOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { toast } from 'sonner';
 import StatsRow from '@/components/dashboard/StatsRow';
+import OrgQuickReference from '@/components/dashboard/OrgQuickReference';
 import ProjectsList from '@/components/dashboard/ProjectsList';
 import ActiveProposalsList from '@/components/dashboard/ActiveProposalsList';
 import ReportCalendar from '@/components/dashboard/ReportCalendar';
@@ -54,31 +54,6 @@ function buildAllDeadlines(projects, reports, milestones) {
   return deadlines;
 }
 
-function CharitableNumberWidget({ orgInfo }) {
-  const [copied, setCopied] = useState(false);
-  const number = orgInfo?.charitable_number;
-  if (!number) return null;
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(number);
-    setCopied(true);
-    toast.success('Charitable number copied');
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className="flex items-center gap-3 bg-card border rounded-xl px-5 py-4">
-      <div className="flex-1">
-        <p className="text-xs text-muted-foreground font-medium">Charitable Number</p>
-        <p className="font-mono font-semibold text-sm mt-0.5">{number}</p>
-      </div>
-      <Button variant="outline" size="sm" onClick={handleCopy} className="gap-2 flex-shrink-0">
-        {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-        {copied ? 'Copied!' : 'Copy'}
-      </Button>
-    </div>
-  );
-}
 
 export default function Dashboard() {
   const { data: projects = [] } = useQuery({
@@ -122,8 +97,6 @@ export default function Dashboard() {
 
       <CountdownBanner deadlines={allDeadlines} />
 
-      <CharitableNumberWidget orgInfo={orgInfo} />
-
       {/* File Storage quick link */}
       <Link to="/files" className="block">
         <div className="flex items-center gap-4 bg-card border rounded-xl px-5 py-4 hover:shadow-md transition-shadow group">
@@ -151,8 +124,9 @@ export default function Dashboard() {
           </div>
           <ReportCalendar reports={reports} projects={projects} milestones={milestones} />
         </div>
-        <div>
+        <div className="space-y-6">
           <UpcomingReports reports={reports} projects={projects} />
+          <OrgQuickReference orgInfo={orgInfo} />
         </div>
       </div>
     </div>
