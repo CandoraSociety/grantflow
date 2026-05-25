@@ -31,13 +31,13 @@ function CopyField({ label, value }) {
         <p className="font-mono text-sm font-medium text-foreground truncate">{value}</p>
       </div>
       <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:text-foreground"
+        variant="default"
+        size="sm"
+        className="flex-shrink-0 gap-1.5"
         onClick={handleCopy}
-        title={`Copy ${label}`}
       >
-        {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+        {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+        {copied ? 'Copied!' : 'Click to copy'}
       </Button>
     </div>
   );
