@@ -7,7 +7,7 @@ const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/proposals', label: 'Proposals', icon: FolderOpen },
   { path: '/submissions', label: 'Submissions', icon: CheckSquare },
-  { path: '/funding-database', label: 'Funders', icon: Database },
+  { path: '/funding-database', label: 'Funder Database', icon: Database },
   { path: '/reports', label: 'Reports', icon: FileText },
   { path: '/files', label: 'Files', icon: Archive },
 ];
