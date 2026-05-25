@@ -5,15 +5,17 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Plus, Database, Bot } from 'lucide-react';
+import { Search, Plus, Database, Bot, Upload } from 'lucide-react';
 import FundingSourceBlock from '@/components/funding/FundingSourceBlock';
 import FundingSourceForm from '@/components/funding/FundingSourceForm';
 import FundingDatabaseChat from '@/components/funding/FundingDatabaseChat';
+import FundingCSVImport from '@/components/funding/FundingCSVImport';
 
 export default function FundingDatabase() {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [showAddSource, setShowAddSource] = useState(false);
+  const [showCSVImport, setShowCSVImport] = useState(false);
   const [activeTab, setActiveTab] = useState('database');
 
   const { data: sources = [] } = useQuery({
@@ -86,6 +88,10 @@ export default function FundingDatabase() {
           <Button variant="outline" className="gap-2" onClick={() => setActiveTab('chat')}>
             <Bot className="w-4 h-4 text-primary" />
             Ask MoneyMan
+          </Button>
+          <Button variant="outline" className="gap-2" onClick={() => setShowCSVImport(true)}>
+            <Upload className="w-4 h-4" />
+            Import CSV
           </Button>
           <Button className="gap-2" onClick={() => setShowAddSource(true)}>
             <Plus className="w-4 h-4" />
@@ -189,6 +195,7 @@ export default function FundingDatabase() {
       {activeTab === 'chat' && <FundingDatabaseChat />}
 
       {showAddSource && <FundingSourceForm onClose={() => setShowAddSource(false)} />}
+      {showCSVImport && <FundingCSVImport onClose={() => setShowCSVImport(false)} />}
     </div>
   );
 }
