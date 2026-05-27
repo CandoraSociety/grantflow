@@ -1,0 +1,33 @@
+{
+  "name": "FunderReportingHub",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the funder (e.g., FCSS, FRN, WD)"
+    },
+    "hub_type": {
+      "type": "string",
+      "enum": [
+        "core_funder",
+        "grant"
+      ],
+      "default": "core_funder",
+      "description": "Whether this is a core/ongoing funder or a one-time grant"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes about this funder or grant"
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "hub_type"
+  ]
+}

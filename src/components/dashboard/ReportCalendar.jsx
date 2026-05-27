@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isSameDay, addMonths, subMonths } from 'date-fns';
 import DeadlineDetailPopup from './DeadlineDetailPopup';
 
-// Build a unified list of deadlines from reports, projects, and milestones
-function buildDeadlines(reports, projects, milestones = []) {
+// Build a unified list of deadlines from reports, projects, milestones, and hub deadlines
+function buildDeadlines(reports, projects, milestones = [], hubDeadlines = []) {
   const deadlines = [];
 
   reports.forEach(r => {
@@ -75,6 +75,22 @@ function buildDeadlines(reports, projects, milestones = []) {
     });
   });
 
+  hubDeadlines.forEach(d => {
+    if (!d.due_date) return;
+    deadlines.push({
+      id: `hub-deadline-${d.id}`,
+      type: 'hub_deadline',
+      date: d.due_date,
+      title: d.title,
+      project_id: null,
+      projectTitle: d.hub_name,
+      funderName: d.hub_name,
+      status: d.status,
+      reportType: d.report_period,
+      notes: d.notes,
+    });
+  });
+
   return deadlines;
 }
 
@@ -83,13 +99,14 @@ const DEADLINE_STYLES = {
   proposal: 'bg-amber-100 text-amber-700 border-amber-200',
   milestone: 'bg-purple-100 text-purple-700 border-purple-200',
   notification: 'bg-teal-100 text-teal-700 border-teal-200',
+  hub_deadline: 'bg-primary/10 text-primary border-primary/20',
 };
 
-export default function ReportCalendar({ reports, projects, milestones = [] }) {
+export default function ReportCalendar({ reports, projects, milestones = [], hubDeadlines = [] }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDeadline, setSelectedDeadline] = useState(null);
 
-  const deadlines = buildDeadlines(reports, projects, milestones);
+  const deadlines = buildDeadlines(reports, projects, milestones, hubDeadlines);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);

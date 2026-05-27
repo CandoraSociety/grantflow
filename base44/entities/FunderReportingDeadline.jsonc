@@ -1,0 +1,58 @@
+{
+  "name": "FunderReportingDeadline",
+  "type": "object",
+  "properties": {
+    "hub_id": {
+      "type": "string",
+      "description": "Parent FunderReportingHub ID"
+    },
+    "hub_name": {
+      "type": "string",
+      "description": "Cached funder/grant name for display"
+    },
+    "title": {
+      "type": "string",
+      "description": "Deadline label (e.g., 'Q2 Interim Report', 'Annual Report 2025')"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Deadline date"
+    },
+    "report_period": {
+      "type": "string",
+      "enum": [
+        "annual",
+        "interim_q1",
+        "interim_q2",
+        "interim_q3",
+        "interim_midyear",
+        "other"
+      ],
+      "default": "annual"
+    },
+    "year": {
+      "type": "string",
+      "description": "Year this deadline relates to"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "upcoming",
+        "in_progress",
+        "submitted",
+        "overdue"
+      ],
+      "default": "upcoming"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "hub_id",
+    "hub_name",
+    "title",
+    "due_date"
+  ]
+}
