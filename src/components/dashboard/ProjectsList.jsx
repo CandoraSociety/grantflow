@@ -34,7 +34,7 @@ export default function ProjectsList({ projects, limit, onOrganize }) {
         return (
           <Card key={project.id} className="p-4 border-none shadow-sm hover:shadow-md transition-all group">
             <div className="flex items-start justify-between gap-4">
-              <Link to={`/projects/${project.id}`} className="flex-1 min-w-0">
+              <Link to={`/proposals/${project.id}`} className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="font-heading font-semibold text-sm truncate">{project.title}</h3>
                   <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 ${sc.class}`}>
@@ -72,7 +72,7 @@ export default function ProjectsList({ projects, limit, onOrganize }) {
                     <FolderOpen className="w-4 h-4" />
                   </button>
                 )}
-                <Link to={`/projects/${project.id}`}>
+                <Link to={`/proposals/${project.id}`}>
                   <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                 </Link>
               </div>
