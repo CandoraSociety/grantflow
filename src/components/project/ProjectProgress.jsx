@@ -25,7 +25,7 @@ export default function ProjectProgress({ project }) {
     <Card className="border-none shadow-sm">
       <CardContent className="p-5">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium">Project Progress</span>
+          <span className="text-sm font-medium">Proposal Progress</span>
           <span className="text-sm font-bold text-primary">{progress}%</span>
         </div>
         <Progress value={progress} className="h-2 mb-4" />

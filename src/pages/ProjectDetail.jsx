@@ -117,7 +117,7 @@ export default function ProjectDetail() {
   }
 
   if (!project) {
-    return <div className="text-center py-12 text-muted-foreground">Project not found</div>;
+    return <div className="text-center py-12 text-muted-foreground">Proposal not found</div>;
   }
 
   return (

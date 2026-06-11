@@ -31,7 +31,7 @@ export default function UpcomingReports({ reports, projects }) {
               const isOverdue = daysLeft < 0;
               const isUrgent = daysLeft >= 0 && daysLeft <= 7;
               return (
-                <Link key={report.id} to={`/projects/${report.project_id}?tab=reports`}>
+                <Link key={report.id} to={`/proposals/${report.project_id}?tab=reports`}>
                   <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors">
                     {isOverdue ? (
                       <AlertTriangle className="w-4 h-4 text-destructive flex-shrink-0" />
